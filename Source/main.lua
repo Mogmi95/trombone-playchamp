@@ -67,3 +67,14 @@ initGame()
 function playdate.update()
     updateDisplay()
 end
+
+function playdate.cranked()
+    if playdate.buttonIsPressed("up") or
+        playdate.buttonIsPressed("down") or
+        playdate.buttonIsPressed("left") or
+        playdate.buttonIsPressed("right") or
+        playdate.buttonIsPressed("b")
+    then
+        startTooting(getPitch(getPlayerPosition()))
+    end
+end
