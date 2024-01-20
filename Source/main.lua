@@ -3,7 +3,6 @@ import "CoreLibs/ui"
 import "CoreLibs/object"
 
 import "Scripts/trombone"
-import "Scripts/song.lua"
 
 local gfx <const> = playdate.graphics
 
