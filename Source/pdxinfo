@@ -1,0 +1,7 @@
+name=Trombone Thing
+author=Mog&Loic
+description=Trombone Champ-like for the Playdate.
+bundleID=fr.mogmi.playdate.trombone
+version=0.0.1
+buildNumber=1
+imagePath=SystemAssets
