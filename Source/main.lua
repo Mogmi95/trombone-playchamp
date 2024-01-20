@@ -1,4 +1,5 @@
 import "CoreLibs/graphics"
+import "CoreLibs/ui"
 import "Scripts/trombone"
 
 local gfx <const> = playdate.graphics
@@ -7,7 +8,7 @@ function initGame()
 end
 
 function updateDisplay()
-    -- Clearing the screen
+        -- Clearing the screen
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(0, 0, 400, 240)
 
@@ -32,6 +33,10 @@ function updateDisplay()
     end
 
     drawingPlayerFunction(playerCircleX, playerCircleY, playerCircleRadius)
+
+    if playdate.isCrankDocked() then
+        playdate.ui.crankIndicator:draw()
+    end
 end
 
 -- Gameplay loop
