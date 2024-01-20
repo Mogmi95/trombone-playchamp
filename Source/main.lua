@@ -15,16 +15,15 @@ function updateDisplay()
 
     -- Drawing the vertical left bar
     gfx.setColor(gfx.kColorBlack)
-    gfx.drawLine(20, 20, 20, 220)
-    gfx.drawLine(16, 20, 24, 20)
-    gfx.drawLine(16, 220, 24, 220)
+    gfx.fillRect(20, 0, 3, 240)
+    gfx.fillRect(30, 0, 3, 240)
 
     local playerPosition = getPlayerPosition()
 
     -- Drawing the player (on the left bar)
-    local playerCircleX = 20
+    local playerCircleX = 27
     local playerCircleY = 20 + 2 * playerPosition
-    local playerCircleRadius = 5
+    local playerCircleRadius = 15
 
     local drawingPlayerFunction = gfx.drawCircleAtPoint
     if playdate.buttonIsPressed("up") or
@@ -33,7 +32,18 @@ function updateDisplay()
         playdate.buttonIsPressed("right") or
         playdate.buttonIsPressed("b")
     then
-        drawingPlayerFunction = gfx.fillCircleAtPoint
+        gfx.setColor(gfx.kColorBlack)
+        gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius)
+        gfx.setColor(gfx.kColorWhite)
+        gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius - 2)
+        gfx.setColor(gfx.kColorBlack)
+        gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius - 5)
+    else
+        gfx.setColor(gfx.kColorBlack)
+        gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius)
+        gfx.setColor(gfx.kColorWhite)
+        gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius - 2)
+        
     end
 
     if playdate.buttonJustPressed("up") or
@@ -53,9 +63,6 @@ function updateDisplay()
     then
         stopTooting()
     end
-
-
-    drawingPlayerFunction(playerCircleX, playerCircleY, playerCircleRadius)
 
     if playdate.isCrankDocked() then
         playdate.ui.crankIndicator:draw()
