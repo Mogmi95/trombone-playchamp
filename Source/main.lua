@@ -1,17 +1,49 @@
 import "CoreLibs/graphics"
 import "CoreLibs/ui"
+import "CoreLibs/object"
 
 import "Scripts/trombone"
+import "Scripts/song.lua"
 
 local gfx <const> = playdate.graphics
 
-function initGame()
+-- Dictionary of seconds currently displayed on screen, and their X position
+-- Should be used to place notes on the track
+local visibleSeconds = {}
+
+function updateTimePositions()
+    -- Using the clock of the media player for future sync
+    local time = playdate.sound.getCurrentTime()
+    -- Using string as keys to have a dict instead of an array
+    local currentSecond = "" .. math.floor(time)
+
+    -- Updating positions of existing marks
+    for second,xpos in pairs(visibleSeconds) do
+        if xpos <= -5 then
+            visibleSeconds[second] = nil
+        else 
+            visibleSeconds[second] -= 1
+        end
+    end
+
+    if visibleSeconds[currentSecond] == nil then
+        visibleSeconds[currentSecond] = 400
+    end
+end
+
+function displayTime()
+    -- Drawing seconds
+    for second,xpos in pairs(visibleSeconds) do
+        gfx.drawText("" .. second, xpos, 220)
+    end
 end
 
 function updateDisplay()
-        -- Clearing the screen
+    -- Clearing the screen
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(0, 0, 400, 240)
+
+    displayTime()
 
     -- Drawing the vertical left bar
     gfx.setColor(gfx.kColorBlack)
@@ -32,6 +64,7 @@ function updateDisplay()
         playdate.buttonIsPressed("right") or
         playdate.buttonIsPressed("b")
     then
+        -- Pressed state
         gfx.setColor(gfx.kColorBlack)
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius)
         gfx.setColor(gfx.kColorWhite)
@@ -39,6 +72,7 @@ function updateDisplay()
         gfx.setColor(gfx.kColorBlack)
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius - 5)
     else
+        -- Normal state
         gfx.setColor(gfx.kColorBlack)
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius)
         gfx.setColor(gfx.kColorWhite)
@@ -70,8 +104,8 @@ function updateDisplay()
 end
 
 -- Gameplay loop
-initGame()
 function playdate.update()
+    updateTimePositions()
     updateDisplay()
 end
 
