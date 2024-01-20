@@ -1,5 +1,6 @@
 import "CoreLibs/graphics"
 import "CoreLibs/ui"
+
 import "Scripts/trombone"
 
 local gfx <const> = playdate.graphics
@@ -27,10 +28,30 @@ function updateDisplay()
     if playdate.buttonIsPressed("up") or
         playdate.buttonIsPressed("down") or
         playdate.buttonIsPressed("left") or
-        playdate.buttonIsPressed("right")
+        playdate.buttonIsPressed("right") or
+        playdate.buttonJustReleased("b")
     then
         drawingPlayerFunction = gfx.fillCircleAtPoint
     end
+
+    if playdate.buttonJustPressed("up") or
+        playdate.buttonJustPressed("down") or
+        playdate.buttonJustPressed("left") or
+        playdate.buttonJustPressed("right") or
+        playdate.buttonJustPressed("b")
+    then
+        startTooting()
+    end
+
+    if playdate.buttonJustReleased("up") or
+        playdate.buttonJustReleased("down") or
+        playdate.buttonJustReleased("left") or
+        playdate.buttonJustReleased("right") or
+        playdate.buttonJustReleased("b")
+    then
+        stopTooting()
+    end
+
 
     drawingPlayerFunction(playerCircleX, playerCircleY, playerCircleRadius)
 
