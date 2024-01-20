@@ -31,7 +31,7 @@ function updateDisplay()
         playdate.buttonIsPressed("down") or
         playdate.buttonIsPressed("left") or
         playdate.buttonIsPressed("right") or
-        playdate.buttonJustReleased("b")
+        playdate.buttonIsPressed("b")
     then
         drawingPlayerFunction = gfx.fillCircleAtPoint
     end
