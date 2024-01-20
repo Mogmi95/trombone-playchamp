@@ -1,6 +1,6 @@
 # trombone-playchamp
 
-TODO
+A playdate game very heavily inspired by [Trombone Champ](https://www.trombonechamp.com/).
 
 ## Compilation
 
