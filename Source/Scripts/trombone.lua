@@ -5,8 +5,16 @@ function getPlayerPosition()
     return 100 - math.abs((playdate.getCrankPosition() - 180) / 1.8)
 end
 
-function startTooting()
-    tromboneSynth:playNote("Db3")
+local pitchHighBound = 698.46 -- F5
+local pitchLowBound = 82.41 -- E2
+
+function getPitch(position)
+    return 	pitchHighBound - (pitchHighBound - pitchLowBound) * position / 100
+end
+
+function startTooting(pitch)
+    tromboneSynth:noteOff()
+    tromboneSynth:playNote(pitch)
 end
 
 

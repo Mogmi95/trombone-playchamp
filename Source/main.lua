@@ -19,9 +19,11 @@ function updateDisplay()
     gfx.drawLine(16, 20, 24, 20)
     gfx.drawLine(16, 220, 24, 220)
 
+    local playerPosition = getPlayerPosition()
+
     -- Drawing the player (on the left bar)
     local playerCircleX = 20
-    local playerCircleY = 20 + 2 * getPlayerPosition()
+    local playerCircleY = 20 + 2 * playerPosition
     local playerCircleRadius = 5
 
     local drawingPlayerFunction = gfx.drawCircleAtPoint
@@ -40,7 +42,7 @@ function updateDisplay()
         playdate.buttonJustPressed("right") or
         playdate.buttonJustPressed("b")
     then
-        startTooting()
+        startTooting(getPitch(playerPosition))
     end
 
     if playdate.buttonJustReleased("up") or
