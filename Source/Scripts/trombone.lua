@@ -1,4 +1,4 @@
-local tromboneSynth = playdate.sound.synth.new(playdate.sound.kWavePOPhase)
+local tromboneSynth = playdate.sound.synth.new(playdate.sound.kWavePOVosim)
 
 -- Vertical position of the dot, from 0 (top) to 100 (bottom)
 function getPlayerPosition()
