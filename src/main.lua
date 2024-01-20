@@ -6,10 +6,7 @@ local gfx <const> = playdate.graphics
 local playerPosition = 0
 
 function updatePlayerPosition()
-    local change = playdate.getCrankChange()
-    if change ~= 0 then
-        playerPosition = math.min(100, math.max(0, playerPosition + change))
-    end
+    playerPosition = 100 - math.abs((playdate.getCrankPosition() - 180) / 1.8)
 end
 
 function initGame()
