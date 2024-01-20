@@ -1,13 +1,7 @@
 import "CoreLibs/graphics"
+import "Scripts/trombone"
 
 local gfx <const> = playdate.graphics
-
--- Vertical position of the dot, from 0 (top) to 100 (bottom)
-local playerPosition = 0
-
-function updatePlayerPosition()
-    playerPosition = 100 - math.abs((playdate.getCrankPosition() - 180) / 1.8)
-end
 
 function initGame()
 end
@@ -25,7 +19,7 @@ function updateDisplay()
 
     -- Drawing the player (on the left bar)
     local playerCircleX = 20
-    local playerCircleY = 20 + 2 * playerPosition
+    local playerCircleY = 20 + 2 * getPlayerPosition()
     local playerCircleRadius = 5
 
     local drawingPlayerFunction = gfx.drawCircleAtPoint
@@ -43,6 +37,5 @@ end
 -- Gameplay loop
 initGame()
 function playdate.update()
-    updatePlayerPosition()
     updateDisplay()
 end
