@@ -119,7 +119,7 @@ function updateDisplay()
         playdate.buttonJustPressed("right") or
         playdate.buttonJustPressed("b")
     then
-        startTooting(getPitch(getPlayerPosition()))
+        startTooting(getMIDINote(playerPosition))
     end
 
     if playdate.buttonJustReleased("up") or
@@ -170,6 +170,6 @@ function playdate.cranked()
         playdate.buttonIsPressed("right") or
         playdate.buttonIsPressed("b")
     then
-        startTooting(getPitch(getPlayerPosition()))
+        startTooting(getMIDINote(getPlayerPosition()))
     end
 end

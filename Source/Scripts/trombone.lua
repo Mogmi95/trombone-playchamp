@@ -7,15 +7,15 @@ end
 
 -- https://trombone.wiki/#/creating-charts
 -- "Midi notes should be in the range 47 to 73 to match the game."
-local pitchHighBound = 587.33 -- MIDI note 74
-local pitchLowBound = 116.54 -- MIDI note 46
+local MIDINoteHighBound = 74
+local MIDINoteLowBound = 46
 
-function getPitch(position)
-    return 	pitchHighBound - (pitchHighBound - pitchLowBound) * position / 100
+function getMIDINote(position)
+    return 	MIDINoteHighBound - (MIDINoteHighBound - MIDINoteLowBound) * position / 100
 end
 
-function startTooting(pitch)
-    tromboneSynth:playNote(pitch)
+function startTooting(MIDINote)
+    tromboneSynth:playMIDINote(MIDINote)
 end
 
 
