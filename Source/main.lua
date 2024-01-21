@@ -7,6 +7,10 @@ import "Scripts/song"
 
 local gfx <const> = playdate.graphics
 
+local UI_LEFT_BAR_X_POSITION_CENTER = 25
+local UI_LEFT_BAR_WIDTH = 8
+local UI_LEFT_BAR_BORDER_WIDTH = 3
+
 local currentSong = nil
 -- Dictionary of seconds currently displayed on screen, and their X position
 -- Should be used to place notes on the track
@@ -68,11 +72,10 @@ function drawPlayer()
     -- Drawing the player (on the left bar)
     local playerPosition = getPlayerPosition()
 
-    local playerCircleX = 27
+    local playerCircleX = UI_LEFT_BAR_X_POSITION_CENTER
     local playerCircleY = 20 + 2 * playerPosition
     local playerCircleRadius = 15
 
-    local drawingPlayerFunction = gfx.drawCircleAtPoint
     buttonCurrent,buttonPressed,buttonReleased = playdate.getButtonState()
     if (buttonCurrent & tootButtonMask) > 0 then
         -- Pressed state
@@ -103,8 +106,8 @@ function updateDisplay()
 
     -- Drawing the vertical left bar
     gfx.setColor(gfx.kColorBlack)
-    gfx.fillRect(20, 0, 3, 240)
-    gfx.fillRect(30, 0, 3, 240)
+    gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER - UI_LEFT_BAR_WIDTH / 2 - UI_LEFT_BAR_BORDER_WIDTH, 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
+    gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER + UI_LEFT_BAR_WIDTH / 2 , 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
 
     drawPlayer()
 
