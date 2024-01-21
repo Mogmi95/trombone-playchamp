@@ -37,7 +37,7 @@ function updateTimePositions()
     end
 end
 
-function displayTime()
+function drawTime()
     -- Drawing seconds
     for second,xpos in pairs(visibleSeconds) do
         gfx.drawText("" .. second, xpos, 220)
@@ -64,24 +64,10 @@ function drawNotes()
     end
 end
 
-function updateDisplay()
-    -- Clearing the screen
-    gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(0, 0, 400, 240)
-
-    if currentSong ~= nil then
-        displayTime()
-        drawNotes()
-    end
-
-    -- Drawing the vertical left bar
-    gfx.setColor(gfx.kColorBlack)
-    gfx.fillRect(20, 0, 3, 240)
-    gfx.fillRect(30, 0, 3, 240)
-
+function drawPlayer()
+    -- Drawing the player (on the left bar)
     local playerPosition = getPlayerPosition()
 
-    -- Drawing the player (on the left bar)
     local playerCircleX = 27
     local playerCircleY = 20 + 2 * playerPosition
     local playerCircleRadius = 15
@@ -108,6 +94,24 @@ function updateDisplay()
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius - 2)
         
     end
+end
+
+function updateDisplay()
+    -- Clearing the screen
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(0, 0, 400, 240)
+
+    if currentSong ~= nil then
+        drawTime()
+        drawNotes()
+    end
+
+    -- Drawing the vertical left bar
+    gfx.setColor(gfx.kColorBlack)
+    gfx.fillRect(20, 0, 3, 240)
+    gfx.fillRect(30, 0, 3, 240)
+
+    drawPlayer()
 
     if playdate.buttonJustPressed("up") or
         playdate.buttonJustPressed("down") or
@@ -115,7 +119,7 @@ function updateDisplay()
         playdate.buttonJustPressed("right") or
         playdate.buttonJustPressed("b")
     then
-        startTooting(getPitch(playerPosition))
+        startTooting(getPitch(getPlayerPosition()))
     end
 
     if playdate.buttonJustReleased("up") or
