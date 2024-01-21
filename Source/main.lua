@@ -43,7 +43,7 @@ function drawTime()
         gfx.drawText("" .. second, xpos, 220)
     end
 end
-
+local tootButtonMask = playdate.kButtonB
 
 function drawNotes()
     if currentSong == nil then return end
@@ -73,12 +73,8 @@ function drawPlayer()
     local playerCircleRadius = 15
 
     local drawingPlayerFunction = gfx.drawCircleAtPoint
-    if playdate.buttonIsPressed("up") or
-        playdate.buttonIsPressed("down") or
-        playdate.buttonIsPressed("left") or
-        playdate.buttonIsPressed("right") or
-        playdate.buttonIsPressed("b")
-    then
+    buttonCurrent,buttonPressed,buttonReleased = playdate.getButtonState()
+    if (buttonCurrent & tootButtonMask) > 0 then
         -- Pressed state
         gfx.setColor(gfx.kColorBlack)
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius)
@@ -92,7 +88,6 @@ function drawPlayer()
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius)
         gfx.setColor(gfx.kColorWhite)
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius - 2)
-        
     end
 end
 
@@ -113,21 +108,11 @@ function updateDisplay()
 
     drawPlayer()
 
-    if playdate.buttonJustPressed("up") or
-        playdate.buttonJustPressed("down") or
-        playdate.buttonJustPressed("left") or
-        playdate.buttonJustPressed("right") or
-        playdate.buttonJustPressed("b")
-    then
-        startTooting(getMIDINote(playerPosition))
+    if (buttonPressed & tootButtonMask) > 0 then
+        startTooting(getMIDINote(getPlayerPosition()))
     end
 
-    if playdate.buttonJustReleased("up") or
-        playdate.buttonJustReleased("down") or
-        playdate.buttonJustReleased("left") or
-        playdate.buttonJustReleased("right") or
-        playdate.buttonJustReleased("b")
-    then
+    if (buttonReleased & tootButtonMask) > 0 then
         stopTooting()
     end
 
@@ -164,12 +149,8 @@ function playdate.AButtonDown()
 end
 
 function playdate.cranked()
-    if playdate.buttonIsPressed("up") or
-        playdate.buttonIsPressed("down") or
-        playdate.buttonIsPressed("left") or
-        playdate.buttonIsPressed("right") or
-        playdate.buttonIsPressed("b")
-    then
+    buttonCurrent,buttonPressed,buttonReleased = playdate.getButtonState()
+    if (buttonCurrent & tootButtonMask) > 0 then
         startTooting(getMIDINote(getPlayerPosition()))
     end
 end
