@@ -12,61 +12,63 @@ local UI_LEFT_BAR_WIDTH = 8
 local UI_LEFT_BAR_BORDER_WIDTH = 3
 
 local currentSong = nil
--- Dictionary of seconds currently displayed on screen, and their X position
--- Should be used to place notes on the track
-local visibleSeconds = {}
 
-function updateTimePositions()
-    if currentSong == nil then
-        visibleSeconds = {}
-        return
-    end
+-- How many pixels 1 second represents (= scrolling speed)
+local ONE_SECOND_IN_PIXELS = 150
 
-    -- Using the clock of the media player for future sync
-    local time = currentSong:getCurrentSongTime()
-    -- Using string as keys to have a dict instead of an array
-    local currentSecond = "" .. math.floor(time)
+-- Calculate the x position of a time (in milliseconds), using the
+-- left bar x as origin. Value can be negative.
+function getDistanceFromBarForTimeInMS(timeAtBar, timeToDisplay)
+    local baseX = UI_LEFT_BAR_X_POSITION_CENTER
+    return (timeToDisplay - timeAtBar) / 1000 * ONE_SECOND_IN_PIXELS
+end
 
-    -- Updating positions of existing marks
-    for second,xpos in pairs(visibleSeconds) do
-        if xpos <= -5 then
-            visibleSeconds[second] = nil
-        else 
-            visibleSeconds[second] -= 1
-        end
-    end
-
-    if visibleSeconds[currentSecond] == nil then
-        visibleSeconds[currentSecond] = 400
-    end
+-- Estimates which seconds are currently displayed on screen (to avoid
+-- calculating for non-rendered values).
+-- Returns a pair min,max
+function getDisplayedSecondsInterval(currentTime)
+    local second = math.floor(currentTime)
+    return second - 1, second + 6
 end
 
 function drawTime()
-    -- Drawing seconds
-    for second,xpos in pairs(visibleSeconds) do
-        gfx.drawText("" .. second, xpos, 220)
+    -- The center of the left bar (UI_LEFT_BAR_X_POSITION_CENTER) represents the X
+    -- position of the current time in the Song.
+    -- Other elements are relative to this point/time considering the speed and scale
+    local barX = UI_LEFT_BAR_X_POSITION_CENTER
+    local time = currentSong:getCurrentSongTime()
+    local second = math.floor(time)
+
+    -- Getting the position of the seconds on screen
+    local minSecond, maxSecond = getDisplayedSecondsInterval(second)
+    for i = minSecond, maxSecond do
+        local distanceFromBar = getDistanceFromBarForTimeInMS(time * 1000, i * 1000)
+        gfx.drawText("" .. i, UI_LEFT_BAR_X_POSITION_CENTER + distanceFromBar, 220)
     end
 end
-local tootButtonMask = playdate.kButtonB
 
 function drawNotes()
     if currentSong == nil then return end
 
     local notes = currentSong:getNotes()
+    local currentSongTime = currentSong:getCurrentSongTime()
+    local minSecond, maxSecond = getDisplayedSecondsInterval(currentSong:getCurrentSongTime())
     for i,note in ipairs(notes) do
-        local noteSecond = "" .. math.floor(note["time"])
+        local noteSecond = note["time"]
         local notePitch = note["pitch"]
-        local visibleSecond = visibleSeconds[noteSecond]
-        if visibleSecond then
+        if (noteSecond >= minSecond) and (noteSecond <= maxSecond) then
+            local noteX = UI_LEFT_BAR_X_POSITION_CENTER + getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
             gfx.setColor(gfx.kColorBlack)
-            gfx.fillCircleAtPoint(visibleSecond, notePitch, 10)
+            gfx.fillCircleAtPoint(noteX, notePitch, 10)
             gfx.setColor(gfx.kColorWhite)
-            gfx.fillCircleAtPoint(visibleSecond, notePitch, 9)
+            gfx.fillCircleAtPoint(noteX, notePitch, 9)
             gfx.setColor(gfx.kColorBlack)
-            gfx.fillCircleAtPoint(visibleSecond, notePitch, 3)
+            gfx.fillCircleAtPoint(noteX, notePitch, 3)
         end
     end
 end
+
+local tootButtonMask = playdate.kButtonB
 
 function drawPlayer()
     -- Drawing the player (on the left bar)
@@ -135,7 +137,6 @@ end
 -- Gameplay loop
 initGame()
 function playdate.update()
-    updateTimePositions()
     updateDisplay()
 end
 
@@ -144,7 +145,6 @@ function playdate.AButtonDown()
     if currentSong ~= nil then
         currentSong:destroy()
         currentSong = nil
-        visibleSeconds = {}
     end
     currentSong = loadSong()
     currentSong:start()
