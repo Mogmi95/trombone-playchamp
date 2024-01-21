@@ -3,16 +3,23 @@ import "CoreLibs/ui"
 import "CoreLibs/object"
 
 import "Scripts/trombone"
+import "Scripts/song"
 
 local gfx <const> = playdate.graphics
 
+local currentSong = nil
 -- Dictionary of seconds currently displayed on screen, and their X position
 -- Should be used to place notes on the track
 local visibleSeconds = {}
 
 function updateTimePositions()
+    if currentSong == nil then
+        visibleSeconds = {}
+        return
+    end
+
     -- Using the clock of the media player for future sync
-    local time = playdate.sound.getCurrentTime()
+    local time = currentSong:getCurrentSongTime()
     -- Using string as keys to have a dict instead of an array
     local currentSecond = "" .. math.floor(time)
 
@@ -37,12 +44,35 @@ function displayTime()
     end
 end
 
+
+function drawNotes()
+    if currentSong == nil then return end
+
+    local notes = currentSong:getNotes()
+    for i,note in ipairs(notes) do
+        local noteSecond = "" .. math.floor(note["time"])
+        local notePitch = note["pitch"]
+        local visibleSecond = visibleSeconds[noteSecond]
+        if visibleSecond then
+            gfx.setColor(gfx.kColorBlack)
+            gfx.fillCircleAtPoint(visibleSecond, notePitch, 10)
+            gfx.setColor(gfx.kColorWhite)
+            gfx.fillCircleAtPoint(visibleSecond, notePitch, 9)
+            gfx.setColor(gfx.kColorBlack)
+            gfx.fillCircleAtPoint(visibleSecond, notePitch, 3)
+        end
+    end
+end
+
 function updateDisplay()
     -- Clearing the screen
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(0, 0, 400, 240)
 
-    displayTime()
+    if currentSong ~= nil then
+        displayTime()
+        drawNotes()
+    end
 
     -- Drawing the vertical left bar
     gfx.setColor(gfx.kColorBlack)
@@ -97,15 +127,36 @@ function updateDisplay()
         stopTooting()
     end
 
+    if currentSong == nil then
+        gfx.drawText("Press A", 300, 100)
+    end
+
     if playdate.isCrankDocked() then
         playdate.ui.crankIndicator:draw()
     end
 end
 
+function initGame()
+    playdate.setCrankSoundsDisabled()
+end
+
 -- Gameplay loop
+initGame()
 function playdate.update()
     updateTimePositions()
     updateDisplay()
+end
+
+function playdate.AButtonDown()
+    -- Closing current song
+    if currentSong ~= nil then
+        currentSong:destroy()
+        currentSong = nil
+        visibleSeconds = {}
+    end
+    currentSong = loadSong()
+    currentSong:start()
+
 end
 
 function playdate.cranked()
