@@ -14,6 +14,9 @@ end
 
 function MenuScreen:display()
     gfx.clear()
+    if #self.songfiles == 0 then
+        gfx.drawText("No songs :(", 20, 30)
+    end 
     for i, song_filename in pairs(self.songfiles) do
         if i == self.selectedIndex then
             gfx.drawText(">", 10, 10 + i * 20)

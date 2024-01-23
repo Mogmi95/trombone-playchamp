@@ -8,6 +8,8 @@ import "Scripts/song"
 import "Scripts/menuscreen"
 import "Scripts/playscreen"
 
+-- Create songs directory in the filesystem
+playdate.file.mkdir("Songs")
 
 local menuScreen = MenuScreen()
 local playingScreen = nil
@@ -25,7 +27,6 @@ function toPlayingScreen(songFilename)
     song:start()
 end
 
-
 function initGame()
     playdate.setCrankSoundsDisabled()
     toMenuScreen()
@@ -35,7 +36,7 @@ end
 initGame()
 function playdate.update()
     if currentScreen == Screens.PLAYING then
-        playingScreen:draw()    
+        playingScreen:draw()
     end
 end
 
@@ -45,21 +46,24 @@ function playdate.AButtonDown()
         currentSong:destroy()
         currentSong = nil
         toMenuScreen()
-    elseif  currentScreen == Screens.MENU then
-        toPlayingScreen(menuScreen:getSelectedSongFilename())
+    elseif currentScreen == Screens.MENU then
+        songFilename = menuScreen:getSelectedSongFilename()
+        if songFilename ~= nil then
+            toPlayingScreen()
+        end
     end
 end
 
 function playdate.upButtonDown()
     if currentScreen == Screens.PLAYING then
-    elseif  currentScreen == Screens.MENU then
+    elseif currentScreen == Screens.MENU then
         menuScreen:upButtonDown()
     end
 end
 
 function playdate.downButtonDown()
     if currentScreen == Screens.PLAYING then
-    elseif  currentScreen == Screens.MENU then
+    elseif currentScreen == Screens.MENU then
         menuScreen:downButtonDown()
     end
 end
@@ -67,6 +71,6 @@ end
 function playdate.cranked()
     if currentScreen == Screens.PLAYING then
         playingScreen:cranked()
-    elseif  currentScreen == Screens.MENU then
+    elseif currentScreen == Screens.MENU then
     end
 end
