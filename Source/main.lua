@@ -42,9 +42,7 @@ end
 
 function playdate.AButtonDown()
     if currentScreen == Screens.PLAYING then
-        -- Closing current song
-        currentSong:destroy()
-        currentSong = nil
+        playingScreen:AButtonDown()
         toMenuScreen()
     elseif currentScreen == Screens.MENU then
         songFilename = menuScreen:getSelectedSongFilename()

@@ -48,13 +48,15 @@ local function drawNotes(song)
     local currentSongTime = song:getCurrentSongTime()
     local minSecond, maxSecond = getDisplayedSecondsInterval(song:getCurrentSongTime())
     local ratioTempoToSeconds = song.tempo / 60
-    for i,note in ipairs(notes) do
+    for i, note in ipairs(notes) do
         local noteSecond = note[1] / ratioTempoToSeconds
         if (noteSecond >= minSecond) and (noteSecond <= maxSecond) then
-            local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER + getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
+            local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
+            getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
             local startNoteY = 100 - note[3] / 2
             local endNoteSecond = (note[1] + note[2]) / ratioTempoToSeconds
-            local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER + getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
+            local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
+            getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
             local endNoteY = 100 - note[5] / 2
             gfx.setColor(gfx.kColorBlack)
             gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
@@ -78,7 +80,7 @@ local function drawPlayer()
     local playerCircleY = 20 + 2 * playerPosition
     local playerCircleRadius = 15
 
-    buttonCurrent,buttonPressed,buttonReleased = playdate.getButtonState()
+    buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     if (buttonCurrent & tootButtonMask) > 0 then
         -- Pressed state
         gfx.setColor(gfx.kColorBlack)
@@ -110,8 +112,9 @@ function PlayingScreen:draw()
 
     -- Drawing the vertical left bar
     gfx.setColor(gfx.kColorBlack)
-    gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER - UI_LEFT_BAR_WIDTH / 2 - UI_LEFT_BAR_BORDER_WIDTH, 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
-    gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER + UI_LEFT_BAR_WIDTH / 2 , 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
+    gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER - UI_LEFT_BAR_WIDTH / 2 - UI_LEFT_BAR_BORDER_WIDTH, 0,
+        UI_LEFT_BAR_BORDER_WIDTH, 240)
+    gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER + UI_LEFT_BAR_WIDTH / 2, 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
 
     drawPlayer()
 
@@ -128,8 +131,14 @@ function PlayingScreen:draw()
     end
 end
 
+function PlayingScreen:AButtonDown()
+    -- Closing current song
+    self.song:destroy()
+    self.song = nil
+end
+
 function PlayingScreen:cranked()
-    buttonCurrent,buttonPressed,buttonReleased = playdate.getButtonState()
+    buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     if (buttonCurrent & tootButtonMask) > 0 then
         startTooting(getMIDINote(getPlayerPosition()))
     end
