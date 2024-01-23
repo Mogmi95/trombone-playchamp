@@ -105,6 +105,7 @@ end
 class("PlayingScreen").extends(Screen)
 
 function PlayingScreen:init(songFilename)
+    self.showFPS = false
     self.song = loadSong(songFilename)
     self.song:start()
 end
@@ -122,6 +123,10 @@ function PlayingScreen:draw()
     gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER + UI_LEFT_BAR_WIDTH / 2, 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
 
     drawPlayer()
+
+    if self.showFPS then
+        playdate.drawFPS()
+    end
 end
 
 function PlayingScreen:update()
@@ -144,6 +149,10 @@ function PlayingScreen:AButtonDown()
     self.song:destroy()
     self.song = nil
     return {["screen"] = Screens.MENU, ["params"] = nil}
+end
+
+function PlayingScreen:downButtonDown()
+    self.showFPS = not self.showFPS
 end
 
 function PlayingScreen:cranked()
