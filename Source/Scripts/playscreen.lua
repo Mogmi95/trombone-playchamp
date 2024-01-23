@@ -3,8 +3,16 @@ import "CoreLibs/graphics"
 import "Scripts/screen"
 import "Scripts/song"
 import "Scripts/trombone"
+import "Scripts/devsettings"
 
 local gfx <const> = playdate.graphics
+
+-- Vertical position of the dot, from 0 (top) to 100 (bottom)
+function getPlayerPosition()
+    local s <const> = 100 / (100 - 2 * deadzone)
+    local position = 100 - math.abs((playdate.getCrankPosition() - 180) / 1.8)
+    return math.max(0, math.min((position - deadzone) * s, 100))
+end
 
 
 local tootButtonMask = playdate.kButtonB
@@ -56,11 +64,11 @@ local function drawNotes(song)
         local noteSecond = note[1] / ratioTempoToSeconds
         if (noteSecond >= minSecond) and (noteSecond <= maxSecond) then
             local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
-            getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
+                getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
             local startNoteY = 100 - note[3] / 2
             local endNoteSecond = (note[1] + note[2]) / ratioTempoToSeconds
             local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
-            getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
+                getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
             local endNoteY = 100 - note[5] / 2
             gfx.setColor(gfx.kColorBlack)
             gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
@@ -148,7 +156,7 @@ function PlayingScreen:AButtonDown()
     -- Closing current song
     self.song:destroy()
     self.song = nil
-    return {["screen"] = Screens.MENU, ["params"] = nil}
+    return { ["screen"] = Screens.MENU, ["params"] = nil }
 end
 
 function PlayingScreen:downButtonDown()
