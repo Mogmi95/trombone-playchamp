@@ -1,3 +1,7 @@
+import "CoreLibs/graphics"
+
+import "Scripts/screen"
+import "Scripts/song"
 import "Scripts/trombone"
 
 local gfx <const> = playdate.graphics
@@ -98,10 +102,11 @@ local function drawPlayer()
     end
 end
 
-class("PlayingScreen").extends()
+class("PlayingScreen").extends(Screen)
 
-function PlayingScreen:init(song)
-    self.song = song
+function PlayingScreen:init(songFilename)
+    self.song = loadSong(songFilename)
+    self.song:start()
 end
 
 function PlayingScreen:draw()
@@ -117,7 +122,10 @@ function PlayingScreen:draw()
     gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER + UI_LEFT_BAR_WIDTH / 2, 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
 
     drawPlayer()
+end
 
+function PlayingScreen:update()
+    self:draw()
     if (buttonPressed & tootButtonMask) > 0 then
         startTooting(getMIDINote(getPlayerPosition()))
     end
@@ -135,6 +143,7 @@ function PlayingScreen:AButtonDown()
     -- Closing current song
     self.song:destroy()
     self.song = nil
+    return {["screen"] = Screens.MENU, ["params"] = nil}
 end
 
 function PlayingScreen:cranked()

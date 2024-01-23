@@ -1,74 +1,57 @@
-import "CoreLibs/graphics"
 import "CoreLibs/ui"
 import "CoreLibs/object"
 
 import "Scripts/state"
-import "Scripts/song"
 
 import "Scripts/menuscreen"
 import "Scripts/playscreen"
 
--- Create songs directory in the filesystem
-playdate.file.mkdir("Songs")
 
 local menuScreen = MenuScreen()
-local playingScreen = nil
 local currentScreen = nil
 
-function toMenuScreen()
-    currentScreen = Screens.MENU
-    menuScreen:display()
+local function changeScreen(transitionData)
+    if transitionData.screen == Screens.MENU then
+        currentScreen = menuScreen
+    elseif transitionData.screen == Screens.PLAYING then
+        currentScreen = PlayingScreen(transitionData.params)
+    end
+    currentScreen:transitionIn()
 end
 
-function toPlayingScreen(songFilename)
-    currentScreen = Screens.PLAYING
-    song = loadSong(songFilename)
-    playingScreen = PlayingScreen(song)
-    song:start()
+local function processCallback(transition)
+    if transition ~= nil then
+        changeScreen(transition)
+    end
 end
 
-function initGame()
-    playdate.setCrankSoundsDisabled()
-    toMenuScreen()
+local function initGame()
+    -- Create songs directory in the filesystem
+    playdate.file.mkdir("Songs")
+
+    -- Start from the menu screen
+    changeScreen({ ["screen"] = Screens.MENU, ["params"] = nil })
 end
 
 -- Gameplay loop
 initGame()
 function playdate.update()
-    if currentScreen == Screens.PLAYING then
-        playingScreen:draw()
-    end
+    processCallback(currentScreen:update())
 end
 
+-- Button callbacks
 function playdate.AButtonDown()
-    if currentScreen == Screens.PLAYING then
-        playingScreen:AButtonDown()
-        toMenuScreen()
-    elseif currentScreen == Screens.MENU then
-        songFilename = menuScreen:getSelectedSongFilename()
-        if songFilename ~= nil then
-            toPlayingScreen(songFilename)
-        end
-    end
+    processCallback(currentScreen:AButtonDown())
 end
 
 function playdate.upButtonDown()
-    if currentScreen == Screens.PLAYING then
-    elseif currentScreen == Screens.MENU then
-        menuScreen:upButtonDown()
-    end
+    processCallback(currentScreen:upButtonDown())
 end
 
 function playdate.downButtonDown()
-    if currentScreen == Screens.PLAYING then
-    elseif currentScreen == Screens.MENU then
-        menuScreen:downButtonDown()
-    end
+    processCallback(currentScreen:downButtonDown())
 end
 
 function playdate.cranked()
-    if currentScreen == Screens.PLAYING then
-        playingScreen:cranked()
-    elseif currentScreen == Screens.MENU then
-    end
+    processCallback(currentScreen:cranked())
 end

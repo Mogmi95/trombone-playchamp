@@ -1,3 +1,6 @@
+import "Scripts/screen"
+import "Scripts/state"
+
 local gfx <const> = playdate.graphics
 
 local function getSongName(songFileName)
@@ -5,14 +8,18 @@ local function getSongName(songFileName)
     return string.sub(songFileName, 1, -2)
 end
 
-class("MenuScreen").extends()
+class("MenuScreen").extends(Screen)
 
 function MenuScreen:init()
     self.songfiles = playdate.file.listFiles("Songs")
     self.selectedIndex = 1
 end
 
-function MenuScreen:display()
+function MenuScreen:transitionIn()
+    self:draw()
+end
+
+function MenuScreen:draw()
     gfx.clear()
     if #self.songfiles == 0 then
         gfx.drawText("No songs :(", 20, 30)
@@ -33,11 +40,15 @@ end
 function MenuScreen:upButtonDown()
     self.selectedIndex = math.max(self.selectedIndex - 1, 1)
     print(self:getSelectedSongFilename())
-    self:display()
+    self:draw()
 end
 
 function MenuScreen:downButtonDown()
     self.selectedIndex = math.min(self.selectedIndex + 1, #self.songfiles)
     print(self:getSelectedSongFilename())
-    self:display()
+    self:draw()
+end
+
+function MenuScreen:AButtonDown()
+    return {["screen"] = Screens.PLAYING, ["params"] = self:getSelectedSongFilename()}
 end
