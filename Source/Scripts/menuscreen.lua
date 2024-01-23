@@ -16,12 +16,13 @@ function MenuScreen:display()
     gfx.clear()
     if #self.songfiles == 0 then
         gfx.drawText("No songs :(", 20, 30)
-    end 
-    for i, song_filename in pairs(self.songfiles) do
-        if i == self.selectedIndex then
-            gfx.drawText(">", 10, 10 + i * 20)
+    else
+        local selectorPosition <const> = 4
+        gfx.drawText(">", 10, selectorPosition * 20)
+        for i, song_filename in pairs(self.songfiles) do
+            lineDiff = i - self.selectedIndex + selectorPosition
+            gfx.drawText(getSongName(song_filename), 20, lineDiff * 20)
         end
-        gfx.drawText(getSongName(song_filename), 20, 10 + i * 20)
     end
 end
 
