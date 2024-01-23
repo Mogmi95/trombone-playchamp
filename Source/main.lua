@@ -2,8 +2,11 @@ import "CoreLibs/graphics"
 import "CoreLibs/ui"
 import "CoreLibs/object"
 
+import "Scripts/state"
 import "Scripts/trombone"
 import "Scripts/song"
+import "Scripts/menuscreen"
+import "Scripts/playscreen"
 
 local gfx <const> = playdate.graphics
 
@@ -138,25 +141,57 @@ function updateDisplay()
     end
 end
 
+local menuScreen = MenuScreen()
+local currentScreen = nil
+
+function toMenuScreen()
+    currentScreen = Screens.MENU
+    menuScreen:display()
+end
+
+function toPlayingScreen(songFilename)
+    currentScreen = Screens.PLAYING
+    currentSong = loadSong(songFilename)
+    currentSong:start()
+end
+
+
 function initGame()
     playdate.setCrankSoundsDisabled()
+    toMenuScreen()
 end
 
 -- Gameplay loop
 initGame()
 function playdate.update()
-    updateDisplay()
+    if currentScreen == Screens.PLAYING then
+        updateDisplay()    
+    end
 end
 
 function playdate.AButtonDown()
-    -- Closing current song
-    if currentSong ~= nil then
+    if currentScreen == Screens.PLAYING then
+        -- Closing current song
         currentSong:destroy()
         currentSong = nil
+        toMenuScreen()
+    elseif  currentScreen == Screens.MENU then
+        toPlayingScreen(menuScreen:getSelectedSongFilename())
     end
-    currentSong = loadSong("demo_song")
-    currentSong:start()
+end
 
+function playdate.upButtonDown()
+    if currentScreen == Screens.PLAYING then
+    elseif  currentScreen == Screens.MENU then
+        menuScreen:upButtonDown()
+    end
+end
+
+function playdate.downButtonDown()
+    if currentScreen == Screens.PLAYING then
+    elseif  currentScreen == Screens.MENU then
+        menuScreen:downButtonDown()
+    end
 end
 
 function playdate.cranked()
