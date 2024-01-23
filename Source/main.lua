@@ -49,7 +49,7 @@ function playdate.AButtonDown()
     elseif currentScreen == Screens.MENU then
         songFilename = menuScreen:getSelectedSongFilename()
         if songFilename ~= nil then
-            toPlayingScreen()
+            toPlayingScreen(songFilename)
         end
     end
 end
