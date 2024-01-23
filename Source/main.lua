@@ -50,20 +50,28 @@ end
 function drawNotes()
     if currentSong == nil then return end
 
-    local notes = currentSong:getNotes()
+    local notes = currentSong.notes
     local currentSongTime = currentSong:getCurrentSongTime()
     local minSecond, maxSecond = getDisplayedSecondsInterval(currentSong:getCurrentSongTime())
+    local ratioTempoToSeconds = currentSong.tempo / 60
     for i,note in ipairs(notes) do
-        local noteSecond = note["time"]
-        local notePitch = note["pitch"]
+        local noteSecond = note[1] / ratioTempoToSeconds
         if (noteSecond >= minSecond) and (noteSecond <= maxSecond) then
-            local noteX = UI_LEFT_BAR_X_POSITION_CENTER + getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
+            local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER + getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
+            local startNoteY = 100 - note[3] / 2
+            local endNoteSecond = (note[1] + note[2]) / ratioTempoToSeconds
+            local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER + getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
+            local endNoteY = 100 - note[5] / 2
             gfx.setColor(gfx.kColorBlack)
-            gfx.fillCircleAtPoint(noteX, notePitch, 10)
-            gfx.setColor(gfx.kColorWhite)
-            gfx.fillCircleAtPoint(noteX, notePitch, 9)
-            gfx.setColor(gfx.kColorBlack)
-            gfx.fillCircleAtPoint(noteX, notePitch, 3)
+            gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
+
+            gfx.fillCircleAtPoint(startNoteX, startNoteY, 6)
+            gfx.fillCircleAtPoint(endNoteX, endNoteY, 3)
+            -- gfx.fillCircleAtPoint(startNoteX, startNoteY, 10)
+            -- gfx.setColor(gfx.kColorWhite)
+            -- gfx.fillCircleAtPoint(startNoteX, startNoteY, 9)
+            -- gfx.setColor(gfx.kColorBlack)
+            -- gfx.fillCircleAtPoint(startNoteX, startNoteY, 3)
         end
     end
 end
@@ -146,7 +154,7 @@ function playdate.AButtonDown()
         currentSong:destroy()
         currentSong = nil
     end
-    currentSong = loadSong()
+    currentSong = loadSong("demo_song")
     currentSong:start()
 
 end

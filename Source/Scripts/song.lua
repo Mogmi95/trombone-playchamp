@@ -1,40 +1,26 @@
 class("Song").extends()
 
 function loadSong(songName)
-    -- TODO load a specific song
     return Song(songName)
 end
 
 function Song:init(songName)
-    -- TODO Load JSON from external file
-    local tmpNotes = json.decode([[
-        {
-            "notes": [
-                {
-                    "time": 1.2,
-                    "pitch": 50
-                }, 
-                {
-                    "time": 2.2,
-                    "pitch": 75
-                },
-                {
-                    "time": 3,
-                    "pitch": 25
-                }
-            ]
-        }
-    ]])
-    self.songName = songName
-    self.notes = tmpNotes["notes"]
+    self.filePlayer = playdate.sound.fileplayer.new("/Songs/" .. songName .."/song.mp3")
+    local jsonData = json.decodeFile("/Songs/" .. songName .."/song.tmb")
+    printTable(jsonData)
+    self.name = jsonData["name"]
+    self.tempo = jsonData["tempo"]
+    self.notes = jsonData["notes"]
 end
 
 function Song:start()
     playdate.sound.resetTime()
+    self.filePlayer:play()
     -- TODO load and play the sound file
 end
 
 function Song:destroy()
+    self.filePlayer:stop()
     -- TODO clear the player
     self.song = nil
 end
