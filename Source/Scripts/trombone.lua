@@ -1,4 +1,8 @@
-local tromboneSynth = playdate.sound.synth.new(playdate.sound.kWavePOVosim)
+import "Scripts/devsettings"
+
+local tromboneSynth = playdate.sound.synth.new(waveform)
+
+local noteStartTime = nil
 
 -- Vertical position of the dot, from 0 (top) to 100 (bottom)
 function getPlayerPosition()
@@ -15,10 +19,16 @@ function getMIDINote(position)
 end
 
 function startTooting(MIDINote)
-    tromboneSynth:playMIDINote(MIDINote)
+    local now = playdate.getCurrentTimeMilliseconds()
+    if noteStartTime == nil or now - noteStartTime > minNoteDurationMs then
+        print(MIDINote)
+        tromboneSynth:playMIDINote(MIDINote)
+        noteStartTime = now
+    end
 end
 
 
 function stopTooting()
     tromboneSynth:noteOff()
+    noteStartTime = nil
 end
