@@ -4,18 +4,17 @@ local tromboneSynth = playdate.sound.synth.new(waveform)
 
 local noteStartTime = nil
 
--- Vertical position of the dot, from 0 (top) to 100 (bottom)
-function getPlayerPosition()
-    return 100 - math.abs((playdate.getCrankPosition() - 180) / 1.8)
-end
-
 -- https://trombone.wiki/#/creating-charts
 -- "Midi notes should be in the range 47 to 73 to match the game."
-local MIDINoteHighBound = 74
-local MIDINoteLowBound = 46
+local MIDINoteHighBound = 73
+local MIDINoteLowBound = 47
 
 function getMIDINote(position)
     return 	MIDINoteHighBound - (MIDINoteHighBound - MIDINoteLowBound) * position / 100
+end
+
+function getPosition(MIDINote)
+    return 100 * (MIDINoteHighBound - MIDINote) / (MIDINoteHighBound - MIDINoteLowBound)
 end
 
 function startTooting(MIDINote)

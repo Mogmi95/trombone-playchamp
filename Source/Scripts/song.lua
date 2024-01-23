@@ -35,5 +35,6 @@ end
 
 -- Checks if hiting a certain pitch at this moment is correct
 function Song:isCurrentNoteCorrect(pitch)
+    -- MIDINote = (note[4]/13.75)+60
     -- TODO
 end

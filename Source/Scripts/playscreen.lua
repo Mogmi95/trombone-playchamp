@@ -14,6 +14,21 @@ function getPlayerPosition()
     return math.max(0, math.min((position - deadzone) * s, 100))
 end
 
+function positionToY(position)
+    return 20 + 2 * position
+end
+
+function MIDINoteToY(MIDINote)
+    return positionToY(getPosition(MIDINote))
+end
+
+function YToMIDINote(y)
+    return getMIDINote((y - 20) / 2)
+end
+
+function tmbNoteToMIDI(tmbNote)
+    return (tmbNote / 13.75) + 60
+end
 
 local tootButtonMask = playdate.kButtonB
 
@@ -65,11 +80,11 @@ local function drawNotes(song)
         if (noteSecond >= minSecond) and (noteSecond <= maxSecond) then
             local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
                 getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
-            local startNoteY = 100 - note[3] / 2
+            local startNoteY = MIDINoteToY(tmbNoteToMIDI(note[3]))
             local endNoteSecond = (note[1] + note[2]) / ratioTempoToSeconds
             local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
                 getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
-            local endNoteY = 100 - note[5] / 2
+            local endNoteY = MIDINoteToY(tmbNoteToMIDI(note[5]))
             gfx.setColor(gfx.kColorBlack)
             gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
 
@@ -89,7 +104,7 @@ local function drawPlayer()
     local playerPosition = getPlayerPosition()
 
     local playerCircleX = UI_LEFT_BAR_X_POSITION_CENTER
-    local playerCircleY = 20 + 2 * playerPosition
+    local playerCircleY = positionToY(playerPosition)
     local playerCircleRadius = 15
 
     buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
