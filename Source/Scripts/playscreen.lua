@@ -126,6 +126,7 @@ class("PlayingScreen").extends(Screen)
 function PlayingScreen:init(songFilename)
     self.showFPS = false
     self.song = loadSong(songFilename)
+    self.trombone = Trombone()
     self.song:start()
 end
 
@@ -153,11 +154,11 @@ function PlayingScreen:update()
     local buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     self:draw(buttonCurrent, buttonPressed, buttonReleased)
     if (buttonPressed & tootButtonMask) > 0 then
-        startTooting(getMIDINote(getPlayerPosition()))
+        self.trombone:startTooting(getMIDINote(getPlayerPosition()))
     end
 
     if (buttonReleased & tootButtonMask) > 0 then
-        stopTooting()
+        self.trombone:stopTooting()
     end
 
     if playdate.isCrankDocked() then
@@ -187,6 +188,6 @@ end
 function PlayingScreen:cranked()
     buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     if (buttonCurrent & tootButtonMask) > 0 then
-        startTooting(getMIDINote(getPlayerPosition()))
+        self.trombone:startTooting(getMIDINote(getPlayerPosition()))
     end
 end

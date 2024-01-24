@@ -1,32 +1,44 @@
 import "Scripts/devsettings"
 
-local tromboneSynth = playdate.sound.synth.new(waveform)
+local function MIDIToFreq(MIDINote)
+    return 440 * 2 ^ ((MIDINote - 69) / 12)
+end
 
-local noteStartTime = nil
+-- Samples from https://freesound.org/
+local refSample = playdate.sound.sampleplayer.new(
+    "Assets/Samples/374039__samulis__tenor-trombone-vibrato-sustain-d4-tenortbn_vib_d3_v1_1.pda")
+
+local tromboneOnVolume = 1
+local refMIDINote <const> = 62
+local refFreq <const> = MIDIToFreq(refMIDINote)
 
 -- https://trombone.wiki/#/creating-charts
 -- "Midi notes should be in the range 47 to 73 to match the game."
 local MIDINoteHighBound = 73
 local MIDINoteLowBound = 47
 
+class("Trombone").extends()
+
 function getMIDINote(position)
-    return 	MIDINoteHighBound - (MIDINoteHighBound - MIDINoteLowBound) * position / 100
+    return MIDINoteHighBound - (MIDINoteHighBound - MIDINoteLowBound) * position / 100
 end
 
 function getPosition(MIDINote)
     return 100 * (MIDINoteHighBound - MIDINote) / (MIDINoteHighBound - MIDINoteLowBound)
 end
 
-function startTooting(MIDINote)
-    local now = playdate.getCurrentTimeMilliseconds()
-    if noteStartTime == nil or now - noteStartTime > minNoteDurationMs then
-        tromboneSynth:playMIDINote(MIDINote)
-        noteStartTime = now
-    end
+function Trombone:init()
+    refSample:setVolume(0)
+    refSample:play(0)
 end
 
+function Trombone:startTooting(MIDINote)
+    noteFreq = MIDIToFreq(MIDINote)
+    refSample:setVolume(tromboneOnVolume)
+    local rate = noteFreq / refFreq
+    refSample:setRate(rate)
+end
 
-function stopTooting()
-    tromboneSynth:noteOff()
-    noteStartTime = nil
+function Trombone:stopTooting()
+    refSample:setVolume(0)
 end
