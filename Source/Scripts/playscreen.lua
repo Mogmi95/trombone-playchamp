@@ -76,12 +76,12 @@ local function drawNotes(song)
     local minSecond, maxSecond = getDisplayedSecondsInterval(song:getCurrentSongTime())
     local ratioTempoToSeconds = song.tempo / 60
     for i, note in ipairs(notes) do
-        local noteSecond = note[1] / ratioTempoToSeconds
-        if (noteSecond >= minSecond) and (noteSecond <= maxSecond) then
+        local startNoteSecond = note[1] / ratioTempoToSeconds
+        local endNoteSecond = (note[1] + note[2]) / ratioTempoToSeconds
+        if (endNoteSecond >= minSecond) and (startNoteSecond <= maxSecond) then
             local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
-                getDistanceFromBarForTimeInMS(currentSongTime * 1000, noteSecond * 1000)
+                getDistanceFromBarForTimeInMS(currentSongTime * 1000, startNoteSecond * 1000)
             local startNoteY = MIDINoteToY(tmbNoteToMIDI(note[3]))
-            local endNoteSecond = (note[1] + note[2]) / ratioTempoToSeconds
             local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
                 getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
             local endNoteY = MIDINoteToY(tmbNoteToMIDI(note[5]))
