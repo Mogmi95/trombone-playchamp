@@ -99,7 +99,7 @@ local function drawNotes(song)
     end
 end
 
-local function drawPlayer()
+local function drawPlayer(buttonCurrent)
     -- Drawing the player (on the left bar)
     local playerPosition = getPlayerPosition()
 
@@ -107,7 +107,6 @@ local function drawPlayer()
     local playerCircleY = positionToY(playerPosition)
     local playerCircleRadius = 15
 
-    buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     if (buttonCurrent & tootButtonMask) > 0 then
         -- Pressed state
         gfx.setColor(gfx.kColorBlack)
@@ -133,7 +132,7 @@ function PlayingScreen:init(songFilename)
     self.song:start()
 end
 
-function PlayingScreen:draw()
+function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
     gfx.clear()
 
     drawTime(self.song)
@@ -145,7 +144,7 @@ function PlayingScreen:draw()
         UI_LEFT_BAR_BORDER_WIDTH, 240)
     gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER + UI_LEFT_BAR_WIDTH / 2, 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
 
-    drawPlayer()
+    drawPlayer(buttonCurrent)
 
     if self.showFPS then
         playdate.drawFPS()
@@ -153,7 +152,9 @@ function PlayingScreen:draw()
 end
 
 function PlayingScreen:update()
-    self:draw()
+    
+    local buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
+    self:draw(buttonCurrent, buttonPressed, buttonReleased)
     if (buttonPressed & tootButtonMask) > 0 then
         startTooting(getMIDINote(getPlayerPosition()))
     end
