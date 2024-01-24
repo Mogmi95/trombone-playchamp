@@ -85,16 +85,13 @@ local function drawNotes(song)
             local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
                 getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
             local endNoteY = MIDINoteToY(tmbNoteToMIDI(note[5]))
+            
+            gfx.pushContext() 
             gfx.setColor(gfx.kColorBlack)
+            gfx.setLineWidth(8) 
             gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
+            gfx.popContext() 
 
-            gfx.fillCircleAtPoint(startNoteX, startNoteY, 6)
-            gfx.fillCircleAtPoint(endNoteX, endNoteY, 3)
-            -- gfx.fillCircleAtPoint(startNoteX, startNoteY, 10)
-            -- gfx.setColor(gfx.kColorWhite)
-            -- gfx.fillCircleAtPoint(startNoteX, startNoteY, 9)
-            -- gfx.setColor(gfx.kColorBlack)
-            -- gfx.fillCircleAtPoint(startNoteX, startNoteY, 3)
         end
     end
 end
