@@ -39,13 +39,11 @@ end
 
 function MenuScreen:upButtonDown()
     self.selectedIndex = math.max(self.selectedIndex - 1, 1)
-    print(self:getSelectedSongFilename())
     self:draw()
 end
 
 function MenuScreen:downButtonDown()
     self.selectedIndex = math.min(self.selectedIndex + 1, #self.songfiles)
-    print(self:getSelectedSongFilename())
     self:draw()
 end
 
