@@ -20,7 +20,6 @@ end
 function startTooting(MIDINote)
     local now = playdate.getCurrentTimeMilliseconds()
     if noteStartTime == nil or now - noteStartTime > minNoteDurationMs then
-        print(MIDINote)
         tromboneSynth:playMIDINote(MIDINote)
         noteStartTime = now
     end
