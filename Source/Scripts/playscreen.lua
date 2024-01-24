@@ -176,6 +176,14 @@ function PlayingScreen:downButtonDown()
     self.showFPS = not self.showFPS
 end
 
+function PlayingScreen:upButtonDown()
+    if self.song.filePlayer:getVolume() > 0 then
+        self.song.filePlayer:setVolume(0)
+    else
+        self.song.filePlayer:setVolume(1)
+    end
+end
+
 function PlayingScreen:cranked()
     buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     if (buttonCurrent & tootButtonMask) > 0 then
