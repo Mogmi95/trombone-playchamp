@@ -5,12 +5,13 @@ function loadSong(songName)
 end
 
 function Song:init(songName)
-    local wavPath = "/Songs/" .. songName .."/song.wav"
+    self.filePlayer = playdate.sound.fileplayer.new()
+    local pdaPath = "/Songs/" .. songName .."/song.pda"
     local mp3Path = "/Songs/" .. songName .."/song.mp3"
-    if playdate.file.exists(wavPath) then
-        self.filePlayer = playdate.sound.fileplayer.new(wavPath)
+    if playdate.file.exists(pdaPath) then
+        self.filePlayer:load(pdaPath)
     elseif playdate.file.exists(mp3Path) then
-        self.filePlayer = playdate.sound.fileplayer.new(mp3Path)
+        self.filePlayer:load(mp3Path)
     end
     local jsonData = json.decodeFile("/Songs/" .. songName .."/song.tmb")
     printTable(jsonData)
