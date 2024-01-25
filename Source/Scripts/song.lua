@@ -1,7 +1,20 @@
+-- SONG CLASS
+
 class("Song").extends()
 
 function loadSong(songName)
     return Song(songName)
+end
+
+-- There can only be one note
+local function convertAndAggregateNotes(tempo, rawNoteData)
+    local result = {}
+
+    for i, note in ipairs(rawNoteData) do
+        result[i] = SimpleNote(tempo, note)
+    end
+
+    return result
 end
 
 function Song:init(songName)
@@ -14,10 +27,9 @@ function Song:init(songName)
         self.filePlayer:load(mp3Path)
     end
     local jsonData = json.decodeFile("/Songs/" .. songName .."/song.tmb")
-    printTable(jsonData)
     self.name = jsonData["name"]
     self.tempo = jsonData["tempo"]
-    self.notes = jsonData["notes"]
+    self.notes = convertAndAggregateNotes(self.tempo, jsonData["notes"])
 end
 
 function Song:start()
@@ -43,5 +55,54 @@ end
 -- Checks if hiting a certain pitch at this moment is correct
 function Song:isCurrentNoteCorrect(pitch)
     -- MIDINote = (note[4]/13.75)+60
+    -- TODO
+end
+
+class("Note").extends()
+
+function Note:toString()
+end
+
+-- NOTE CLASS
+
+function tmbNoteToMIDI(tmbNote)
+    return (tmbNote / 13.75) + 60
+end
+
+-- A Note that has at most one pitch change
+class("SimpleNote").extends("Note")
+
+function SimpleNote:init(tempo, rawNoteData)
+    self.startBar = rawNoteData[1]
+    self.durationBar = rawNoteData[2]
+    self.endBar = self.startBar + self.durationBar
+    self.pitchStartTmb = rawNoteData[3]
+    self.NotSureMaybeStrengthOfPitchCurve = rawNoteData[4]
+    self.pitchEndTmb = rawNoteData[5]
+
+    self.startSeconds = self.startBar / tempo * 60
+    self.durationSeconds = self.durationBar / tempo * 60
+    self.endSeconds = self.endBar / tempo * 60
+
+    self.pitchStartMIDI = tmbNoteToMIDI(self.pitchStartTmb)
+    self.pitchEndMIDI = tmbNoteToMIDI(self.pitchEndTmb)
+end
+
+function SimpleNote:toString()
+    return "Note("
+        --.. "startBar=" .. self.startBar .. ", "
+        .. "startSeconds=" .. self.startSeconds .. ", "
+        .. "pitchStartMIDI=" .. self.pitchStartMIDI .. ", "
+        .. ")"
+end
+
+-- A Note that can contain multiple pitch changes
+class("ModulatedNote").extends("Note")
+
+function ModulatedNote:init(tempo, listOfRawNoteData)
+    -- TODO
+end
+
+function ModulatedNote:toString()
     -- TODO
 end

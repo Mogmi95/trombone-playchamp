@@ -27,10 +27,6 @@ function YToMIDINote(y)
     return getMIDINote((y - 20) / 2)
 end
 
-function tmbNoteToMIDI(tmbNote)
-    return (tmbNote / 13.75) + 60
-end
-
 local CONFIG_BUTTON_TOOT = playdate.kButtonB
 local tootButtonMask = CONFIG_BUTTON_TOOT
 
@@ -58,7 +54,7 @@ end
 -- Returns a pair min,max
 local function getDisplayedSecondsInterval(currentTime)
     local second = math.floor(currentTime)
-    return second - 1, second + 6
+    return second - 1, second + 3
 end
 
 local function drawTime(song)
@@ -81,6 +77,38 @@ end
 local DIFFICULTY_X = 2 -- pixels allowed to miss the note
 local currentNote = nil
 
+local function drawSimpleNote(currentSongTime, note)
+    local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER
+        + getDistanceFromBarForTimeInMS(currentSongTime * 1000, note.startSeconds * 1000)
+    local startNoteY = MIDINoteToY(note.pitchStartMIDI)
+
+    local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER 
+        + getDistanceFromBarForTimeInMS(currentSongTime * 1000, note.endSeconds * 1000)
+    local endNoteY = MIDINoteToY(note.pitchEndMIDI)
+    
+    local polygonMethod = gfx.fillPolygon
+
+    if (hittingNote ~= nil) and (note == hittingNote) then
+        polygonMethod = gfx.drawPolygon
+    end
+    polygonMethod(
+        -- BOTTOM LEFT POINT
+        startNoteX, startNoteY - UI_NOTE_WIDTH / 2,
+        -- TOP LEFT POINT
+        startNoteX , startNoteY + UI_NOTE_WIDTH / 2,
+        -- TOP RIGHT POINT
+        endNoteX, endNoteY + UI_NOTE_WIDTH / 2,
+        -- BOTTOM RIGHT POINT
+        endNoteX, endNoteY - UI_NOTE_WIDTH / 2
+    )
+    
+    -- TODO SHOULD NOT BE DONE DURING DRAWING
+    if (startNoteX - UI_LEFT_BAR_X_POSITION_CENTER <= DIFFICULTY_X) and (endNoteX - UI_LEFT_BAR_X_POSITION_CENTER >= DIFFICULTY_X) then
+        currentNote = note
+    end
+    -- END TODO SHOULD NOT BE DONE DURING DRAWING
+end
+
 local function drawNotes(song)
     -- TODO SHOULD NOT BE DONE DURING DRAWING
     currentNote = nil
@@ -89,43 +117,24 @@ local function drawNotes(song)
     gfx.setColor(gfx.kColorBlack)
 
     local notes = song.notes
+
     local currentSongTime = song:getCurrentSongTime()
     local minSecond, maxSecond = getDisplayedSecondsInterval(song:getCurrentSongTime())
-    local ratioTempoToSeconds = song.tempo / 60
-    for i, note in ipairs(notes) do
-        local startNoteSecond = note[1] / ratioTempoToSeconds
-        local endNoteSecond = (note[1] + note[2]) / ratioTempoToSeconds
-        if (endNoteSecond >= minSecond) and (startNoteSecond <= maxSecond) then
-            local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER
-                + getDistanceFromBarForTimeInMS(currentSongTime * 1000, startNoteSecond * 1000)
-            local startNoteY = MIDINoteToY(tmbNoteToMIDI(note[3]))
-            local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER 
-                + getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
-            local endNoteY = MIDINoteToY(tmbNoteToMIDI(note[5]))
-            
-            local polygonMethod = gfx.fillPolygon
 
-            if (hittingNote ~= nil) and (note[1] == hittingNote[1]) then
-                polygonMethod = gfx.drawPolygon
-            end
-            polygonMethod(
-                -- BOTTOM LEFT POINT
-                startNoteX, startNoteY - UI_NOTE_WIDTH / 2,
-                -- TOP LEFT POINT
-                startNoteX , startNoteY + UI_NOTE_WIDTH / 2,
-                -- TOP RIGHT POINT
-                endNoteX, endNoteY + UI_NOTE_WIDTH / 2,
-                -- BOTTOM RIGHT POINT
-                endNoteX, endNoteY - UI_NOTE_WIDTH / 2
-            )
-            
-            -- TODO SHOULD NOT BE DONE DURING DRAWING
-            if (startNoteX - UI_LEFT_BAR_X_POSITION_CENTER <= DIFFICULTY_X) and (endNoteX - UI_LEFT_BAR_X_POSITION_CENTER >= DIFFICULTY_X) then
-                currentNote = note
-            end
-            -- END TODO SHOULD NOT BE DONE DURING DRAWING
+    for i, note in ipairs(notes) do
+        -- If either the start or the end of the note is on the interval displayed on screen, we draw the note
+        if (((note.startSeconds >= minSecond) and (note.startSeconds <= maxSecond))
+                or ((note.endSeconds >= minSecond) and (note.endSeconds <= maxSecond))) then
+            -- TODO Check simple of modulated note
+            drawSimpleNote(currentSongTime, note)
+        end
+
+        -- Small optimization after finding the last possible displayed note
+        if note.endSeconds > maxSecond then
+            break
         end
     end
+
     gfx.popContext() 
 end
 
