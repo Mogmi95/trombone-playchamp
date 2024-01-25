@@ -31,7 +31,8 @@ function tmbNoteToMIDI(tmbNote)
     return (tmbNote / 13.75) + 60
 end
 
-local tootButtonMask = playdate.kButtonB
+local CONFIG_BUTTON_TOOT = playdate.kButtonB
+local tootButtonMask = CONFIG_BUTTON_TOOT
 
 local UI_LEFT_BAR_X_POSITION_CENTER = 25
 local UI_LEFT_BAR_WIDTH = 8
@@ -71,7 +72,14 @@ local function drawTime(song)
     end
 end
 
+-- TODO Make not global
+local DIFFICULTY_X = 2 -- pixels allowed to miss the note
+local currentNote = nil
+
 local function drawNotes(song)
+    -- TODO SHOULD NOT BE DONE DURING DRAWING
+    currentNote = nil
+
     local notes = song.notes
     local currentSongTime = song:getCurrentSongTime()
     local minSecond, maxSecond = getDisplayedSecondsInterval(song:getCurrentSongTime())
@@ -80,18 +88,26 @@ local function drawNotes(song)
         local startNoteSecond = note[1] / ratioTempoToSeconds
         local endNoteSecond = (note[1] + note[2]) / ratioTempoToSeconds
         if (endNoteSecond >= minSecond) and (startNoteSecond <= maxSecond) then
-            local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
-                getDistanceFromBarForTimeInMS(currentSongTime * 1000, startNoteSecond * 1000)
+            local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER
+                + getDistanceFromBarForTimeInMS(currentSongTime * 1000, startNoteSecond * 1000)
             local startNoteY = MIDINoteToY(tmbNoteToMIDI(note[3]))
-            local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER +
-                getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
+            local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER 
+                + getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
             local endNoteY = MIDINoteToY(tmbNoteToMIDI(note[5]))
             
             gfx.pushContext() 
             gfx.setColor(gfx.kColorBlack)
+            gfx.setLineCapStyle(playdate.graphics.kLineCapStyleRound)
             gfx.setLineWidth(8) 
             gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
             gfx.popContext() 
+
+            -- TODO SHOULD NOT BE DONE DURING DRAWING
+            if (startNoteX - UI_LEFT_BAR_X_POSITION_CENTER <= DIFFICULTY_X) and (endNoteX - UI_LEFT_BAR_X_POSITION_CENTER >= DIFFICULTY_X) then
+                print("CURRENT NOTE " .. note[1])
+                currentNote = note
+            end
+            -- END TODO SHOULD NOT BE DONE DURING DRAWING
 
         end
     end
@@ -122,6 +138,36 @@ local function drawPlayer(buttonCurrent)
     end
 end
 
+local hittingNote = nil
+local hittingScore = 0
+
+local function checkScore(buttonCurrent, score)
+    if playdate.buttonJustPressed(CONFIG_BUTTON_TOOT) then
+        if currentNote == nil then
+            -- MISS
+        else
+            -- HIT
+            hittingNote = currentNote
+            hittingScore += 300
+        end
+    elseif hittingNote and ((buttonCurrent & tootButtonMask) > 0) then
+        -- Maintaining a note after hitting it
+        -- TODO Better check if the note is valid
+        if currentNote == hittingNote then
+            -- Still hitting the note
+            hittingScore += 100
+        end
+    elseif playdate.buttonJustReleased(CONFIG_BUTTON_TOOT) then
+        -- Actually scoring pending points
+        if hittingScore > 0 then
+            score:addPoints(hittingScore)
+            hittingNote = nil
+            hittingScore = 0
+        end
+    end
+end
+
+
 class("PlayingScreen").extends(Screen)
 
 function PlayingScreen:init(songFilename)
@@ -146,6 +192,7 @@ function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
 
     drawPlayer(buttonCurrent)
 
+    checkScore(buttonCurrent, self.score)
     self.score:draw()
 
     if self.showFPS then
@@ -159,7 +206,6 @@ function PlayingScreen:update()
     self:draw(buttonCurrent, buttonPressed, buttonReleased)
     if (buttonPressed & tootButtonMask) > 0 then
         self.trombone:startTooting(getMIDINote(getPlayerPosition()))
-        self.score:addPoints(100)
     end
 
     if (buttonReleased & tootButtonMask) > 0 then
