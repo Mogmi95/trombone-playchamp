@@ -44,6 +44,14 @@ function playdate.AButtonDown()
     processCallback(currentScreen:AButtonDown())
 end
 
+function playdate.BButtonDown()
+    processCallback(currentScreen:BButtonDown())
+end
+
+function playdate.BButtonUp()
+    processCallback(currentScreen:BButtonUp())
+end
+
 function playdate.upButtonDown()
     processCallback(currentScreen:upButtonDown())
 end

@@ -16,5 +16,11 @@ end
 function Screen:AButtonDown()
 end
 
+function Screen:BButtonDown()
+end
+
+function Screen:BButtonUp()
+end
+
 function Screen:cranked()
 end

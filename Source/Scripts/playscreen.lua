@@ -277,16 +277,10 @@ function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
 end
 
 function PlayingScreen:update()
+    self.trombone:update()
     
     local buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     self:draw(buttonCurrent, buttonPressed, buttonReleased)
-    if (buttonPressed & tootButtonMask) > 0 then
-        self.trombone:startTooting(getMIDINote(getPlayerPosition()))
-    end
-
-    if (buttonReleased & tootButtonMask) > 0 then
-        self.trombone:stopTooting()
-    end
 
     self.chart:update()
 
@@ -300,6 +294,14 @@ function PlayingScreen:AButtonDown()
     self.song:destroy()
     self.song = nil
     return { ["screen"] = Screens.MENU, ["params"] = nil }
+end
+
+function PlayingScreen:BButtonDown()
+    self.trombone:startTooting(getMIDINote(getPlayerPosition()))
+end
+
+function PlayingScreen:BButtonUp()
+        self.trombone:stopTooting()
 end
 
 function PlayingScreen:downButtonDown()
@@ -317,6 +319,6 @@ end
 function PlayingScreen:cranked()
     buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     if (buttonCurrent & tootButtonMask) > 0 then
-        self.trombone:startTooting(getMIDINote(getPlayerPosition()))
+        self.trombone:setNote(getMIDINote(getPlayerPosition()))
     end
 end
