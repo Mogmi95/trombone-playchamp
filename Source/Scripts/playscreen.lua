@@ -38,8 +38,13 @@ local UI_LEFT_BAR_X_POSITION_CENTER = 25
 local UI_LEFT_BAR_WIDTH = 8
 local UI_LEFT_BAR_BORDER_WIDTH = 3
 
+local UI_NOTE_WIDTH = 8
+
 -- How many pixels 1 second represents (= scrolling speed)
 local ONE_SECOND_IN_PIXELS = 150
+
+local hittingNote = nil
+local hittingScore = 0
 
 -- Calculate the x position of a time (in milliseconds), using the
 -- left bar x as origin. Value can be negative.
@@ -80,6 +85,9 @@ local function drawNotes(song)
     -- TODO SHOULD NOT BE DONE DURING DRAWING
     currentNote = nil
 
+    gfx.pushContext() 
+    gfx.setColor(gfx.kColorBlack)
+
     local notes = song.notes
     local currentSongTime = song:getCurrentSongTime()
     local minSecond, maxSecond = getDisplayedSecondsInterval(song:getCurrentSongTime())
@@ -95,22 +103,30 @@ local function drawNotes(song)
                 + getDistanceFromBarForTimeInMS(currentSongTime * 1000, endNoteSecond * 1000)
             local endNoteY = MIDINoteToY(tmbNoteToMIDI(note[5]))
             
-            gfx.pushContext() 
-            gfx.setColor(gfx.kColorBlack)
-            gfx.setLineCapStyle(playdate.graphics.kLineCapStyleRound)
-            gfx.setLineWidth(8) 
-            gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
-            gfx.popContext() 
+            local polygonMethod = gfx.fillPolygon
 
+            if (hittingNote ~= nil) and (note[1] == hittingNote[1]) then
+                polygonMethod = gfx.drawPolygon
+            end
+            polygonMethod(
+                -- BOTTOM LEFT POINT
+                startNoteX, startNoteY - UI_NOTE_WIDTH / 2,
+                -- TOP LEFT POINT
+                startNoteX , startNoteY + UI_NOTE_WIDTH / 2,
+                -- TOP RIGHT POINT
+                endNoteX, endNoteY + UI_NOTE_WIDTH / 2,
+                -- BOTTOM RIGHT POINT
+                endNoteX, endNoteY - UI_NOTE_WIDTH / 2
+            )
+            
             -- TODO SHOULD NOT BE DONE DURING DRAWING
             if (startNoteX - UI_LEFT_BAR_X_POSITION_CENTER <= DIFFICULTY_X) and (endNoteX - UI_LEFT_BAR_X_POSITION_CENTER >= DIFFICULTY_X) then
-                print("CURRENT NOTE " .. note[1])
                 currentNote = note
             end
             -- END TODO SHOULD NOT BE DONE DURING DRAWING
-
         end
     end
+    gfx.popContext() 
 end
 
 local function drawPlayer(buttonCurrent)
@@ -137,9 +153,6 @@ local function drawPlayer(buttonCurrent)
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius - 2)
     end
 end
-
-local hittingNote = nil
-local hittingScore = 0
 
 local function checkScore(buttonCurrent, score)
     if playdate.buttonJustPressed(CONFIG_BUTTON_TOOT) then
