@@ -245,6 +245,7 @@ function PlayingScreen:init(songFilename)
     self.chart:addListener(chartListener)
 
     self.trombone = Trombone()
+    self.trombone:setNote(getMIDINote(getPlayerPosition()))
     self.song:start()
 end
 
