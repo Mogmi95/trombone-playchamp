@@ -28,59 +28,65 @@ function getPosition(MIDINote)
     return 100 * (MIDINoteHighBound - MIDINote) / (MIDINoteHighBound - MIDINoteLowBound)
 end
 
-function Trombone:init()
-    refSample:setVolume(0)
-    refSample:play(0)
-    self.attack_ms = 0.2 * 1000
-    self.decay_ms = 0.3 * 1000
-    self.sustainVolume = 0.6 * tromboneMaxVolume
-    self.release_ms = 0.1 * 1000
-    self.noteStartTime_ms = nil
-    self.noteReleaseTime_ms = nil
-end
+SynthPhase = {
+    ["ATTACK"] = 1,
+    ["DECAY"] = 2,
+    ["SUSTAIN"] = 3,
+    ["RELEASE"] = 4,
+};
 
-function Trombone:getVolume(now)
-    if self.noteStartTime_ms == nil then
-        return 0
-    end
-    if self.noteReleaseTime_ms == nil then
-        if now < self.noteStartTime_ms + self.attack_ms then
-            -- attack_ms phase
-            return playdate.math.lerp(0, tromboneMaxVolume, (now - self.noteStartTime_ms) / self.attack_ms)
-        elseif now < self.noteStartTime_ms + self.attack_ms + self.decay_ms then
-            -- decay phase
-            return playdate.math.lerp(tromboneMaxVolume, self.sustainVolume,
-                (now - self.attack_ms - self.noteStartTime_ms) / self.decay_ms)
-        else
-            -- sustain phase
-            return self.sustainVolume
-        end
-    else
-        if now < self.noteReleaseTime_ms + self.release_ms then
-            -- release phase
-            return playdate.math.lerp(self.sustainVolume, 0,
-                (now - self.attack_ms - self.noteStartTime_ms) / self.release_ms)
-        else
-            -- After full release
-            return 0
-        end
-    end
+function Trombone:init()
+    refSample:play(0)
+    refSample:setVolume(0)
+    self.attack_ms = 0.03 * 1000
+    self.decay_ms = 0.2 * 1000
+    self.sustainVolume = 0.7 * tromboneMaxVolume
+    self.release_ms = 0.05 * 1000
+
+    self.attackSpeed = tromboneMaxVolume / self.attack_ms
+    self.decaySpeed = (tromboneMaxVolume - self.sustainVolume) / self.decay_ms
+    self.releaseSpeed = self.sustainVolume / self.release_ms
+    self.currentPhase = nil
+    self.lastUpdate_ms = nil
 end
 
 function Trombone:startTooting()
-    self.noteStartTime_ms = playdate.getCurrentTimeMilliseconds()
-    self.noteReleaseTime_ms = nil
+    self.currentPhase = SynthPhase.ATTACK
 end
 
 function Trombone:stopTooting()
-    print("STOP")
-    self.noteReleaseTime_ms = playdate.getCurrentTimeMilliseconds()
+    self.currentPhase = SynthPhase.RELEASE
 end
 
 function Trombone:update()
-    volume = self:getVolume(playdate.getCurrentTimeMilliseconds())
-    print(volume)
-    refSample:setVolume(volume)
+    now = playdate.getCurrentTimeMilliseconds()
+    currentVolume = refSample:getVolume()
+    if self.lastUpdate_ms ~= nil and self.currentPhase ~= nil then
+        if self.currentPhase == SynthPhase.ATTACK then
+            if currentVolume < tromboneMaxVolume then
+                currentVolume += self.attackSpeed * (now - self.lastUpdate_ms)
+            else
+                self.currentPhase = SynthPhase.DECAY
+            end
+        elseif self.currentPhase == SynthPhase.DECAY then
+            if currentVolume > self.sustainVolume then
+                currentVolume -= self.decaySpeed * (now - self.lastUpdate_ms)
+            else
+                self.currentPhase = SynthPhase.SUSTAIN
+            end
+        elseif self.currentPhase == SynthPhase.SUSTAIN then
+            currentVolume = self.sustainVolume
+        elseif self.currentPhase == SynthPhase.RELEASE then
+            if currentVolume > 0 then
+                currentVolume -= self.releaseSpeed * (now - self.lastUpdate_ms)
+            else
+                self.currentPhase = nil
+            end
+        end
+    end
+    self.lastUpdate_ms = now
+    print(currentVolume)
+    refSample:setVolume(currentVolume)
 end
 
 function Trombone:setNote(MIDINote)
