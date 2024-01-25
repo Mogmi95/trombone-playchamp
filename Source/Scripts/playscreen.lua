@@ -2,6 +2,7 @@ import "CoreLibs/graphics"
 
 import "Scripts/screen"
 import "Scripts/song"
+import "Scripts/score"
 import "Scripts/trombone"
 import "Scripts/devsettings"
 
@@ -125,6 +126,7 @@ class("PlayingScreen").extends(Screen)
 
 function PlayingScreen:init(songFilename)
     self.showFPS = false
+    self.score = Score(400 - getScoreWidth(), 200)
     self.song = loadSong(songFilename)
     self.trombone = Trombone()
     self.song:start()
@@ -144,6 +146,8 @@ function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
 
     drawPlayer(buttonCurrent)
 
+    self.score:draw()
+
     if self.showFPS then
         playdate.drawFPS()
     end
@@ -155,6 +159,7 @@ function PlayingScreen:update()
     self:draw(buttonCurrent, buttonPressed, buttonReleased)
     if (buttonPressed & tootButtonMask) > 0 then
         self.trombone:startTooting(getMIDINote(getPlayerPosition()))
+        self.score:addPoints(100)
     end
 
     if (buttonReleased & tootButtonMask) > 0 then
