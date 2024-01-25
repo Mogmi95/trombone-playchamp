@@ -3,6 +3,7 @@ import "CoreLibs/graphics"
 import "Scripts/screen"
 import "Scripts/song"
 import "Scripts/score"
+import "Scripts/chart"
 import "Scripts/trombone"
 import "Scripts/devsettings"
 
@@ -26,6 +27,12 @@ end
 function YToMIDINote(y)
     return getMIDINote((y - 20) / 2)
 end
+
+local FLAG_ENABLE_COMMENTS = true
+local DIFFICULTY_X = 4
+
+local CONFIG_MESSAGE_TTL = 10
+local CONFIG_MESSAGE_SPEED = 2
 
 local CONFIG_BUTTON_TOOT = playdate.kButtonB
 local tootButtonMask = CONFIG_BUTTON_TOOT
@@ -163,7 +170,8 @@ local function drawPlayer(buttonCurrent)
     end
 end
 
-local function checkScore(buttonCurrent, score)
+local function checkScore(buttonCurrent, score, chart)
+    local currentNote = chart:getCurrentNote()
     if playdate.buttonJustPressed(CONFIG_BUTTON_TOOT) then
         if currentNote == nil then
             -- MISS
@@ -189,6 +197,23 @@ local function checkScore(buttonCurrent, score)
     end
 end
 
+-- list of
+-- {
+--      "y": 40
+--      "text": "Yay!"
+--      "ttl": 3     -- (Time To Live, in frames)
+-- }
+local successMessages = {}
+
+local function drawSuccessMessages()
+    for i, msg in ipairs(successMessages) do
+        gfx.drawText(msg.text, UI_LEFT_BAR_X_POSITION_CENTER + 10 , msg.y - 10 + msg.ttl)
+        msg.ttl -= CONFIG_MESSAGE_SPEED
+        if msg.ttl == 0 then
+            table.remove(successMessages, i)
+        end
+    end
+end
 
 class("PlayingScreen").extends(Screen)
 
@@ -196,6 +221,29 @@ function PlayingScreen:init(songFilename)
     self.showFPS = false
     self.score = Score(400 - getScoreWidth(), 200)
     self.song = loadSong(songFilename)
+
+    self.chart = Chart(self.song.notes, UI_LEFT_BAR_X_POSITION_CENTER)
+    local chartListener = {
+        onNotePlaying = function(note, isFirstFrame, isLastFrame)
+            -- Maybe we want the Chart to return the currentPitch approximated as well
+            print(note:toString())
+
+            -- Time to display a message with the note success!
+            if FLAG_ENABLE_COMMENTS and isLastFrame then
+                local text = "Missed."
+                if hittingScore > 0 then
+                    text = "Nice!"
+                end
+                table.insert(successMessages, {
+                    y = positionToY(getPlayerPosition()),
+                    text = text,
+                    ttl = CONFIG_MESSAGE_TTL
+                })
+            end
+        end
+    }
+    self.chart:addListener(chartListener)
+
     self.trombone = Trombone()
     self.song:start()
 end
@@ -206,6 +254,8 @@ function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
     drawTime(self.song)
     drawNotes(self.song)
 
+    self.chart:draw()
+
     -- Drawing the vertical left bar
     gfx.setColor(gfx.kColorBlack)
     gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER - UI_LEFT_BAR_WIDTH / 2 - UI_LEFT_BAR_BORDER_WIDTH, 0,
@@ -214,8 +264,12 @@ function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
 
     drawPlayer(buttonCurrent)
 
-    checkScore(buttonCurrent, self.score)
+    checkScore(buttonCurrent, self.score, self.chart)
     self.score:draw()
+
+    if FLAG_ENABLE_COMMENTS then
+        drawSuccessMessages()
+    end
 
     if self.showFPS then
         playdate.drawFPS()
@@ -233,6 +287,8 @@ function PlayingScreen:update()
     if (buttonReleased & tootButtonMask) > 0 then
         self.trombone:stopTooting()
     end
+
+    self.chart:update()
 
     if playdate.isCrankDocked() then
         playdate.ui.crankIndicator:draw()
