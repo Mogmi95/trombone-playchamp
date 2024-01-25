@@ -74,7 +74,7 @@ local function drawTime(song)
 end
 
 -- TODO Make not global
-local DIFFICULTY_X = 2 -- pixels allowed to miss the note
+local DIFFICULTY_X = 4 -- pixels allowed to miss the note
 local currentNote = nil
 
 local function drawSimpleNote(currentSongTime, note)
