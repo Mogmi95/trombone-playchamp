@@ -6,10 +6,11 @@ local function MIDIToFreq(MIDINote)
 end
 
 -- Samples from https://freesound.org/
-local refSample = playdate.sound.sampleplayer.new("Assets/Samples/60.pda")
+local refSample = playdate.sound.sampleplayer.new(
+    "Assets/Samples/374039__samulis__tenor-trombone-vibrato-sustain-d4-tenortbn_vib_d3_v1_1.pda")
 
 local tromboneMaxVolume = 1
-local refMIDINote <const> = 60
+local refMIDINote <const> = 62
 local refFreq <const> = MIDIToFreq(refMIDINote)
 
 -- https://trombone.wiki/#/creating-charts
@@ -85,6 +86,5 @@ end
 function Trombone:setNote(MIDINote)
     noteFreq = MIDIToFreq(MIDINote)
     local rate = noteFreq / refFreq
-    print(noteFreq)
     refSample:setRate(rate)
 end
