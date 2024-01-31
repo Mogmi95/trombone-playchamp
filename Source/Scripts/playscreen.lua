@@ -283,6 +283,11 @@ function PlayingScreen:draw()
     end
 end
 
+local function getCurrentPitch(note, currentTime)
+    return playdate.math.lerp(note.pitchStartMIDI, note.pitchEndMIDI,
+        (currentTime - note.startSeconds) / (note.durationSeconds))
+end
+
 function PlayingScreen:update()
     local buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     self:draw(buttonCurrent, buttonPressed, buttonReleased)
@@ -296,7 +301,7 @@ function PlayingScreen:update()
                 self.trombone:stopTooting()
             end
         else
-            self.trombone:setNote(currentNote.pitchStartMIDI)
+            self.trombone:setNote(getCurrentPitch(currentNote, self.song:getCurrentSongTime()))
             if not self.trombone.isTooting then
                 self.trombone:startTooting()
             end
