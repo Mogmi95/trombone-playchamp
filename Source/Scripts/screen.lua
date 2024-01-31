@@ -13,6 +13,12 @@ end
 function Screen:downButtonDown()
 end
 
+function Screen:leftButtonDown()
+end
+
+function Screen:rightButtonDown()
+end
+
 function Screen:AButtonDown()
 end
 

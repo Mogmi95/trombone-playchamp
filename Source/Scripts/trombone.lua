@@ -28,68 +28,25 @@ function getPosition(MIDINote)
     return 100 * (MIDINoteHighBound - MIDINote) / (MIDINoteHighBound - MIDINoteLowBound)
 end
 
-SynthPhase = {
-    ["ATTACK"] = 1,
-    ["DECAY"] = 2,
-    ["SUSTAIN"] = 3,
-    ["RELEASE"] = 4,
-};
-
 function Trombone:init()
     refSample:play(0)
     refSample:setVolume(0)
-    self.attack_ms = 0.03 * 1000
-    self.decay_ms = 0.2 * 1000
-    self.sustainVolume = 0.7 * tromboneMaxVolume
-    self.release_ms = 0.05 * 1000
-
-    self.attackSpeed = tromboneMaxVolume / self.attack_ms
-    self.decaySpeed = (tromboneMaxVolume - self.sustainVolume) / self.decay_ms
-    self.releaseSpeed = self.sustainVolume / self.release_ms
-    self.currentPhase = nil
-    self.lastUpdate_ms = nil
+    self.isTooting = false
+    self.currentMIDINote = nil
 end
 
 function Trombone:startTooting()
-    self.currentPhase = SynthPhase.ATTACK
+    self.isTooting = true
+    refSample:setVolume(tromboneMaxVolume)
 end
 
 function Trombone:stopTooting()
-    self.currentPhase = SynthPhase.RELEASE
-end
-
-function Trombone:update()
-    now = playdate.getCurrentTimeMilliseconds()
-    currentVolume = refSample:getVolume()
-    if self.lastUpdate_ms ~= nil and self.currentPhase ~= nil then
-        if self.currentPhase == SynthPhase.ATTACK then
-            if currentVolume < tromboneMaxVolume then
-                currentVolume += self.attackSpeed * (now - self.lastUpdate_ms)
-            else
-                self.currentPhase = SynthPhase.DECAY
-            end
-        elseif self.currentPhase == SynthPhase.DECAY then
-            if currentVolume > self.sustainVolume then
-                currentVolume -= self.decaySpeed * (now - self.lastUpdate_ms)
-            else
-                self.currentPhase = SynthPhase.SUSTAIN
-            end
-        elseif self.currentPhase == SynthPhase.SUSTAIN then
-            currentVolume = self.sustainVolume
-        elseif self.currentPhase == SynthPhase.RELEASE then
-            if currentVolume > 0 then
-                currentVolume -= self.releaseSpeed * (now - self.lastUpdate_ms)
-            else
-                self.currentPhase = nil
-            end
-        end
-    end
-    self.lastUpdate_ms = now
-    print(currentVolume)
-    refSample:setVolume(currentVolume)
+    refSample:setVolume(0)
+    self.isTooting = false
 end
 
 function Trombone:setNote(MIDINote)
+    self.currentMIDINote = MIDINote
     noteFreq = MIDIToFreq(MIDINote)
     local rate = noteFreq / refFreq
     refSample:setRate(rate)

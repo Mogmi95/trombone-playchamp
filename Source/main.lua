@@ -60,6 +60,15 @@ function playdate.downButtonDown()
     processCallback(currentScreen:downButtonDown())
 end
 
+function playdate.leftButtonDown()
+    processCallback(currentScreen:leftButtonDown())
+end
+
+function playdate.rightButtonDown()
+    processCallback(currentScreen:leftButtonDown())
+end
+
+
 function playdate.cranked()
     processCallback(currentScreen:cranked())
 end

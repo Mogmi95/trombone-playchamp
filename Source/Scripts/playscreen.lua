@@ -89,26 +89,26 @@ local function drawSimpleNote(currentSongTime, note)
         + getDistanceFromBarForTimeInMS(currentSongTime * 1000, note.startSeconds * 1000)
     local startNoteY = MIDINoteToY(note.pitchStartMIDI)
 
-    local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER 
+    local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER
         + getDistanceFromBarForTimeInMS(currentSongTime * 1000, note.endSeconds * 1000)
     local endNoteY = MIDINoteToY(note.pitchEndMIDI)
-    
+
     local polygonMethod = gfx.fillPolygon
 
     if (hittingNote ~= nil) and (note == hittingNote) then
         polygonMethod = gfx.drawPolygon
     end
     polygonMethod(
-        -- BOTTOM LEFT POINT
+    -- BOTTOM LEFT POINT
         startNoteX, startNoteY - UI_NOTE_WIDTH / 2,
         -- TOP LEFT POINT
-        startNoteX , startNoteY + UI_NOTE_WIDTH / 2,
+        startNoteX, startNoteY + UI_NOTE_WIDTH / 2,
         -- TOP RIGHT POINT
         endNoteX, endNoteY + UI_NOTE_WIDTH / 2,
         -- BOTTOM RIGHT POINT
         endNoteX, endNoteY - UI_NOTE_WIDTH / 2
     )
-    
+
     -- TODO SHOULD NOT BE DONE DURING DRAWING
     if (startNoteX - UI_LEFT_BAR_X_POSITION_CENTER <= DIFFICULTY_X) and (endNoteX - UI_LEFT_BAR_X_POSITION_CENTER >= DIFFICULTY_X) then
         currentNote = note
@@ -120,7 +120,7 @@ local function drawNotes(song)
     -- TODO SHOULD NOT BE DONE DURING DRAWING
     currentNote = nil
 
-    gfx.pushContext() 
+    gfx.pushContext()
     gfx.setColor(gfx.kColorBlack)
 
     local notes = song.notes
@@ -142,18 +142,18 @@ local function drawNotes(song)
         end
     end
 
-    gfx.popContext() 
+    gfx.popContext()
 end
 
-local function drawPlayer(buttonCurrent)
+local function drawPlayer(trombone, position)
     -- Drawing the player (on the left bar)
-    local playerPosition = getPlayerPosition()
+    local playerPosition = position
 
     local playerCircleX = UI_LEFT_BAR_X_POSITION_CENTER
     local playerCircleY = positionToY(playerPosition)
     local playerCircleRadius = 15
 
-    if (buttonCurrent & tootButtonMask) > 0 then
+    if trombone.isTooting then
         -- Pressed state
         gfx.setColor(gfx.kColorBlack)
         gfx.fillCircleAtPoint(playerCircleX, playerCircleY, playerCircleRadius)
@@ -219,7 +219,7 @@ class("PlayingScreen").extends(Screen)
 
 function PlayingScreen:init(songFilename)
     self.showFPS = false
-    self.score = Score(400 - getScoreWidth(), 200)
+    self.score = Score(400 - getScoreWidth(), 5)
     self.song = loadSong(songFilename)
 
     self.chart = Chart(self.song.notes, UI_LEFT_BAR_X_POSITION_CENTER)
@@ -247,9 +247,10 @@ function PlayingScreen:init(songFilename)
     self.trombone = Trombone()
     self.trombone:setNote(getMIDINote(getPlayerPosition()))
     self.song:start()
+    self.autoplay = false
 end
 
-function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
+function PlayingScreen:draw()
     gfx.clear()
 
     drawTime(self.song)
@@ -263,7 +264,12 @@ function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
         UI_LEFT_BAR_BORDER_WIDTH, 240)
     gfx.fillRect(UI_LEFT_BAR_X_POSITION_CENTER + UI_LEFT_BAR_WIDTH / 2, 0, UI_LEFT_BAR_BORDER_WIDTH, 240)
 
-    drawPlayer(buttonCurrent)
+    playerPosition = getPlayerPosition()
+    if self.autoplay then
+        playerPosition = getPosition(self.trombone.currentMIDINote)
+    end
+
+    drawPlayer(self.trombone, playerPosition)
 
     checkScore(buttonCurrent, self.score, self.chart)
     self.score:draw()
@@ -278,14 +284,24 @@ function PlayingScreen:draw(buttonCurrent, buttonPressed, buttonReleased)
 end
 
 function PlayingScreen:update()
-    self.trombone:update()
-    
     local buttonCurrent, buttonPressed, buttonReleased = playdate.getButtonState()
     self:draw(buttonCurrent, buttonPressed, buttonReleased)
 
     self.chart:update()
 
-    if playdate.isCrankDocked() then
+    if self.autoplay then
+        currentNote = self.chart:getCurrentNote()
+        if currentNote == nil then
+            if self.trombone.isTooting then
+                self.trombone:stopTooting()
+            end
+        else
+            self.trombone:setNote(currentNote.pitchStartMIDI)
+            if not self.trombone.isTooting then
+                self.trombone:startTooting()
+            end
+        end
+    elseif playdate.isCrankDocked() then
         playdate.ui.crankIndicator:draw()
     end
 end
@@ -298,11 +314,11 @@ function PlayingScreen:AButtonDown()
 end
 
 function PlayingScreen:BButtonDown()
-    self.trombone:startTooting(getMIDINote(getPlayerPosition()))
+    self.trombone:startTooting()
 end
 
 function PlayingScreen:BButtonUp()
-        self.trombone:stopTooting()
+    self.trombone:stopTooting()
 end
 
 function PlayingScreen:downButtonDown()
@@ -315,6 +331,10 @@ function PlayingScreen:upButtonDown()
     else
         self.song.filePlayer:setVolume(1)
     end
+end
+
+function PlayingScreen:leftButtonDown()
+    self.autoplay = not self.autoplay
 end
 
 function PlayingScreen:cranked()
