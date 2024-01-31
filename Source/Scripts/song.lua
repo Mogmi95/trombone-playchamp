@@ -7,11 +7,11 @@ function loadSong(songName)
 end
 
 -- There can only be one note
-local function convertAndAggregateNotes(tempo, rawNoteData)
+local function convertAndAggregateNotes(tempo, rawNoteData, minNoteDurationSeconds)
     local result = {}
 
     for i, note in ipairs(rawNoteData) do
-        result[i] = SimpleNote(tempo, note)
+        result[i] = SimpleNote(tempo, note, minNoteDurationSeconds)
     end
 
     return result
@@ -29,7 +29,7 @@ function Song:init(songName)
     local jsonData = json.decodeFile("/Songs/" .. songName .."/song.tmb")
     self.name = jsonData["name"]
     self.tempo = jsonData["tempo"]
-    self.notes = convertAndAggregateNotes(self.tempo, jsonData["notes"])
+    self.notes = convertAndAggregateNotes(self.tempo, jsonData["notes"], (1/playdate.display.getRefreshRate()) * 1.5)
 end
 
 function Song:start()
@@ -72,7 +72,7 @@ end
 -- A Note that has at most one pitch change
 class("SimpleNote").extends("Note")
 
-function SimpleNote:init(tempo, rawNoteData)
+function SimpleNote:init(tempo, rawNoteData, minDurationSeconds)
     self.startBar = rawNoteData[1]
     self.durationBar = rawNoteData[2]
     self.endBar = self.startBar + self.durationBar
@@ -83,6 +83,11 @@ function SimpleNote:init(tempo, rawNoteData)
     self.startSeconds = self.startBar / tempo * 60
     self.durationSeconds = self.durationBar / tempo * 60
     self.endSeconds = self.endBar / tempo * 60
+
+    if self.durationSeconds < minDurationSeconds then
+        self.durationSeconds = minDurationSeconds
+        self.endSeconds = self.startSeconds + minDurationSeconds
+    end
 
     self.pitchStartMIDI = tmbNoteToMIDI(self.pitchStartTmb)
     self.pitchEndMIDI = tmbNoteToMIDI(self.pitchEndTmb)
