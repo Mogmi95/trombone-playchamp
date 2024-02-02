@@ -1,0 +1,20 @@
+Ideas for what to do next:
+
+# Kinda important
+
+* An actual menu with game modes selection and a cool art (we probably can have like PLAY, AUTOPLAY, CREDITS, (EXIT?) right now... settings might be better in the ingame settings?)
+* Check notes' Y instead of only the current X check
+* Improve note checking to *feel* better/fairer
+* Summary screen after ending a song (score, number of hit/miss, quality of hits...)
+* Highscore storing/display?
+
+# Cool stuff
+
+* Improve the font/display of success messages (might as well make them optional in the ingame settings?)
+* Improve the style of the player bar
+* Improve the score look/animation(s)
+* Try to have rounded bars for notes that change pitch (maybe using `gfx.drawArc`, shouldn't impact perfs)
+* Particle effects when hitting a note
+* Have an animation somehow in the "background" while playing? Or something happening.
+* Display lyrics if they are presents in the `.tmb` file
+* Propose alternative instruments?
