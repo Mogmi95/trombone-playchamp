@@ -49,102 +49,6 @@ local ONE_SECOND_IN_PIXELS = 150
 local hittingNote = nil
 local hittingScore = 0
 
--- Calculate the x position of a time (in milliseconds), using the
--- left bar x as origin. Value can be negative.
-local function getDistanceFromBarForTimeInMS(timeAtBar, timeToDisplay)
-    local baseX = UI_LEFT_BAR_X_POSITION_CENTER
-    return (timeToDisplay - timeAtBar) / 1000 * ONE_SECOND_IN_PIXELS
-end
-
--- Estimates which seconds are currently displayed on screen (to avoid
--- calculating for non-rendered values).
--- Returns a pair min,max
-local function getDisplayedSecondsInterval(currentTime)
-    local second = math.floor(currentTime)
-    return second - 1, second + 3
-end
-
-local function drawTime(song)
-    -- The center of the left bar (UI_LEFT_BAR_X_POSITION_CENTER) represents the X
-    -- position of the current time in the Song.
-    -- Other elements are relative to this point/time considering the speed and scale
-    local barX = UI_LEFT_BAR_X_POSITION_CENTER
-    local time = song:getCurrentSongTime()
-    local second = math.floor(time)
-
-    -- Getting the position of the seconds on screen
-    local minSecond, maxSecond = getDisplayedSecondsInterval(second)
-    for i = minSecond, maxSecond do
-        local distanceFromBar = getDistanceFromBarForTimeInMS(time * 1000, i * 1000)
-        gfx.drawText("" .. i, UI_LEFT_BAR_X_POSITION_CENTER + distanceFromBar, 220)
-    end
-end
-
--- TODO Make not global
-local DIFFICULTY_X = 4 -- pixels allowed to miss the note
-local currentNote = nil
-
-local function drawSimpleNote(currentSongTime, note)
-    local startNoteX = UI_LEFT_BAR_X_POSITION_CENTER
-        + getDistanceFromBarForTimeInMS(currentSongTime * 1000, note.startSeconds * 1000)
-    local startNoteY = MIDINoteToY(note.pitchStartMIDI)
-
-    local endNoteX = UI_LEFT_BAR_X_POSITION_CENTER
-        + getDistanceFromBarForTimeInMS(currentSongTime * 1000, note.endSeconds * 1000)
-    local endNoteY = MIDINoteToY(note.pitchEndMIDI)
-
-    local polygonMethod = gfx.fillPolygon
-
-    if (hittingNote ~= nil) and (note == hittingNote) then
-        polygonMethod = gfx.drawPolygon
-    end
-    polygonMethod(
-    -- BOTTOM LEFT POINT
-        startNoteX, startNoteY - UI_NOTE_WIDTH / 2,
-        -- TOP LEFT POINT
-        startNoteX, startNoteY + UI_NOTE_WIDTH / 2,
-        -- TOP RIGHT POINT
-        endNoteX, endNoteY + UI_NOTE_WIDTH / 2,
-        -- BOTTOM RIGHT POINT
-        endNoteX, endNoteY - UI_NOTE_WIDTH / 2
-    )
-
-    -- TODO SHOULD NOT BE DONE DURING DRAWING
-    if (startNoteX - UI_LEFT_BAR_X_POSITION_CENTER <= DIFFICULTY_X) and (endNoteX - UI_LEFT_BAR_X_POSITION_CENTER >= DIFFICULTY_X) then
-        currentNote = note
-    end
-    -- END TODO SHOULD NOT BE DONE DURING DRAWING
-end
-
-local function drawNotes(song)
-    -- TODO SHOULD NOT BE DONE DURING DRAWING
-    currentNote = nil
-
-    gfx.pushContext()
-    gfx.setColor(gfx.kColorBlack)
-
-    local notes = song.notes
-
-    local currentSongTime = song:getCurrentSongTime()
-    local minSecond, maxSecond = getDisplayedSecondsInterval(song:getCurrentSongTime())
-
-    for i, note in ipairs(notes) do
-        -- If either the start or the end of the note is on the interval displayed on screen, we draw the note
-        if (((note.startSeconds >= minSecond) and (note.startSeconds <= maxSecond))
-                or ((note.endSeconds >= minSecond) and (note.endSeconds <= maxSecond))) then
-            -- TODO Check simple of modulated note
-            drawSimpleNote(currentSongTime, note)
-        end
-
-        -- Small optimization after finding the last possible displayed note
-        if note.endSeconds > maxSecond then
-            break
-        end
-    end
-
-    gfx.popContext()
-end
-
 local function drawPlayer(trombone, position)
     -- Drawing the player (on the left bar)
     local playerPosition = position
@@ -252,9 +156,6 @@ end
 
 function PlayingScreen:draw()
     gfx.clear()
-
-    drawTime(self.song)
-    drawNotes(self.song)
 
     self.chart:draw()
 
