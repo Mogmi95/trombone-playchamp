@@ -6,7 +6,7 @@ class("Chart").extends()
 
 -- How many pixels 1 second represents (= scrolling speed)
 local ONE_SECOND_IN_PIXELS = 150
-local UI_NOTE_WIDTH = 8
+local UI_NOTE_WIDTH = 20
 
 local listener = {
         onNotePlaying = function(note, isFirstFrame, isLastFrame)
@@ -15,7 +15,7 @@ local listener = {
 
 function Chart:init(notes, playerPositionX)
     self.notes = notes
-    self.playerPositionX = playerPositionX
+    self.playerPositionX = playerPositionX + 10 -- Magic number for a better feeling with scrolling
     self.previousNote = nil
     self.currentNote = nil
     self.listeners = {}
@@ -73,6 +73,7 @@ local function drawTime(playerPositionX)
 end
 
 local function drawSimpleNote(currentSongTime, note, playerPositionX)
+    print(playerPositionX)
     local startNoteX = playerPositionX
         + getDistanceFromBarForTimeInMS(currentSongTime * 1000, note.startSeconds * 1000, playerPositionX)
     local startNoteY = MIDINoteToY(note.pitchStartMIDI)
@@ -81,21 +82,19 @@ local function drawSimpleNote(currentSongTime, note, playerPositionX)
         + getDistanceFromBarForTimeInMS(currentSongTime * 1000, note.endSeconds * 1000, playerPositionX)
     local endNoteY = MIDINoteToY(note.pitchEndMIDI)
     
-    local polygonMethod = gfx.fillPolygon
+    gfx.setColor(gfx.kColorBlack)
+    playdate.graphics.setLineCapStyle(playdate.graphics.kLineCapStyleRound)
+    gfx.setLineWidth(UI_NOTE_WIDTH)
+    gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
 
-    if (hittingNote ~= nil) and (note == hittingNote) then
-        polygonMethod = gfx.drawPolygon
+    -- Drawing white inside the line unless the player is hitting it
+    local isNoteBeingHit = false -- TODO
+
+    if not isNoteBeingHit then
+        gfx.setColor(gfx.kColorWhite)
+        gfx.setLineWidth(UI_NOTE_WIDTH - 4)
+        gfx.drawLine(startNoteX + MARGIN, startNoteY, endNoteX - MARGIN, endNoteY)
     end
-    polygonMethod(
-        -- BOTTOM LEFT POINT
-        startNoteX, startNoteY - UI_NOTE_WIDTH / 2,
-        -- TOP LEFT POINT
-        startNoteX , startNoteY + UI_NOTE_WIDTH / 2,
-        -- TOP RIGHT POINT
-        endNoteX, endNoteY + UI_NOTE_WIDTH / 2,
-        -- BOTTOM RIGHT POINT
-        endNoteX, endNoteY - UI_NOTE_WIDTH / 2
-    )
 end
 
 local function drawNotes(notes, playerPositionX)
