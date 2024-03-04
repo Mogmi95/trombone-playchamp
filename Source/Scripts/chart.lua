@@ -15,7 +15,7 @@ local listener = {
 
 function Chart:init(notes, playerPositionX)
     self.notes = notes
-    self.playerPositionX = playerPositionX + 10 -- Magic number for a better feeling with scrolling
+    self.playerPositionX = playerPositionX + 20 -- Magic number for a better feeling with scrolling
     self.previousNote = nil
     self.currentNote = nil
     self.listeners = {}
@@ -90,10 +90,10 @@ local function drawSimpleNote(currentSongTime, note, playerPositionX)
     -- Drawing white inside the line unless the player is hitting it
     local isNoteBeingHit = false -- TODO
 
-    if not isNoteBeingHit then
+    if isNoteBeingHit then
         gfx.setColor(gfx.kColorWhite)
         gfx.setLineWidth(UI_NOTE_WIDTH - 4)
-        gfx.drawLine(startNoteX + MARGIN, startNoteY, endNoteX - MARGIN, endNoteY)
+        gfx.drawLine(startNoteX, startNoteY, endNoteX, endNoteY)
     end
 end
 
