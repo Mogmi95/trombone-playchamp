@@ -15,7 +15,7 @@ local listener = {
 
 function Chart:init(notes, playerPositionX)
     self.notes = notes
-    self.playerPositionX = playerPositionX + 20 -- Magic number for a better feeling with scrolling
+    self.playerPositionX = playerPositionX + 10 -- Magic number for a better feeling with scrolling
     self.previousNote = nil
     self.currentNote = nil
     self.listeners = {}

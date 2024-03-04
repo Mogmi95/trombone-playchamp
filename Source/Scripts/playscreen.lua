@@ -30,6 +30,7 @@ end
 
 local FLAG_ENABLE_COMMENTS = true
 local DIFFICULTY_X = 4
+local DIFFICULTY_Y = 10
 
 local CONFIG_MESSAGE_TTL = 10
 local CONFIG_MESSAGE_SPEED = 2
@@ -45,9 +46,6 @@ local UI_NOTE_WIDTH = 8
 
 -- How many pixels 1 second represents (= scrolling speed)
 local ONE_SECOND_IN_PIXELS = 150
-
-local hittingNote = nil
-local hittingScore = 0
 
 local function drawPlayer(trombone, position)
     -- Drawing the player (on the left bar)
@@ -74,15 +72,33 @@ local function drawPlayer(trombone, position)
     end
 end
 
+local hittingNote = nil
+local hittingScore = 0
+
+function isPitchCorrect(playerPosition, note)
+    if (note:isa(SimpleNote)) then
+        local currentPlayerPitch = getMIDINote(playerPosition)
+        return math.abs(note.pitchStartMIDI - currentPlayerPitch) < DIFFICULTY_Y
+    else
+        -- TODO: support ModulatedNotes
+    end
+end
+
+-- Checks if the player is hitting a note, and update the score accordingly
 local function checkScore(buttonCurrent, score, chart)
     local currentNote = chart:getCurrentNote()
+
     if playdate.buttonJustPressed(CONFIG_BUTTON_TOOT) then
         if currentNote == nil then
-            -- MISS
+            -- Wrong timing
         else
-            -- HIT
-            hittingNote = currentNote
-            hittingScore += 300
+            -- Correct timing, checking the pitch
+            if (isPitchCorrect(getPlayerPosition(), currentNote)) then
+                hittingNote = currentNote
+                hittingScore += 300
+            else
+                -- Wrong pitch
+            end
         end
     elseif hittingNote and ((buttonCurrent & tootButtonMask) > 0) then
         -- Maintaining a note after hitting it
@@ -90,6 +106,10 @@ local function checkScore(buttonCurrent, score, chart)
         if currentNote == hittingNote then
             -- Still hitting the note
             hittingScore += 100
+        else
+            score:addPoints(hittingScore)
+            hittingNote = nil
+            hittingScore = 0
         end
     elseif playdate.buttonJustReleased(CONFIG_BUTTON_TOOT) then
         -- Actually scoring pending points
@@ -110,13 +130,23 @@ end
 local successMessages = {}
 
 local function drawSuccessMessages()
+    gfx.pushContext() 
+    gfx.setColor(gfx.kColorBlack)
+    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillWhite)
+    local horizontalMargin = 4
+
     for i, msg in ipairs(successMessages) do
-        gfx.drawText(msg.text, UI_LEFT_BAR_X_POSITION_CENTER + 10 , msg.y - 10 + msg.ttl)
+        local textWidth, textHeight = playdate.graphics.getTextSize(msg.text)
+        local textX = UI_LEFT_BAR_X_POSITION_CENTER + 10
+        local textY = msg.y - 30 + msg.ttl * 2
+        gfx.fillRect(textX, textY, textWidth + horizontalMargin * 2, textHeight)
+        gfx.drawText(msg.text, textX + horizontalMargin, textY)
         msg.ttl -= CONFIG_MESSAGE_SPEED
         if msg.ttl == 0 then
             table.remove(successMessages, i)
         end
     end
+    gfx.popContext()
 end
 
 class("PlayingScreen").extends(Screen)
@@ -139,7 +169,8 @@ function PlayingScreen:init(songFilename)
                     text = "Nice!"
                 end
                 table.insert(successMessages, {
-                    y = positionToY(getPlayerPosition()),
+                    -- y = positionToY(getPlayerPosition()),
+                    y = MIDINoteToY(note.pitchEndMIDI),
                     text = text,
                     ttl = CONFIG_MESSAGE_TTL
                 })
